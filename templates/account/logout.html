@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block head_title %}{% trans "Sign Out" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logout-container {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        padding: 2.5rem;
+        max-width: 500px;
+        margin: 3rem auto;
+    }
+    
+    .logout-header {
+        color: #5D4037;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .logout-icon {
+        font-size: 3rem;
+        color: #8D6E63;
+        margin-bottom: 1rem;
+        display: block;
+        text-align: center;
+    }
+    
+    .btn-logout {
+        background-color: #5D4037;
+        border-color: #5D4037;
+        color: white;
+        padding: 0.5rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-logout:hover {
+        background-color: #4E342E;
+        border-color: #4E342E;
+        transform: translateY(-2px);
+    }
+    
+    .btn-cancel {
+        background-color: #f8f9fa;
+        border-color: #ddd;
+        color: #495057;
+        padding: 0.5rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+    }
+    
+    .logout-options {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .logout-message {
+        text-align: center;
+        font-size: 1.1rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+    
+    .account-links {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+    
+    .account-links ul {
+        list-style-type: none;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+    
+    .account-links a {
+        color: #8D6E63;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+    
+    .account-links a:hover {
+        color: #5D4037;
+        text-decoration: underline;
+    }
+    
+    .crafty-logo {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .crafty-logo img {
+        max-width: 120px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="logout-container">
+                <div class="crafty-logo">
+                    <img src="{% static 'img/Crafty.png' %}" alt="Crafty Logo">
+                </div>
+                
+                <h1 class="logout-header">{% trans "Sign Out" %}</h1>
+                <i class="fas fa-sign-out-alt logout-icon"></i>
+                
+                <p class="logout-message">{% trans "Are you sure you want to sign out?" %}</p>
+
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                    {% endif %}
+                    
+                    <div class="logout-options">
+                        <a href="{% url 'products:product_list' %}" class="btn btn-cancel">
+                            <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
+                        </a>
+                        <button type="submit" class="btn btn-logout">
+                            <i class="fas fa-sign-out-alt me-2"></i>{% trans "Sign Out" %}
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="account-links">
+                    <ul>
+                        
+                        <li><a href="{% url 'account_login' %}">{% trans "Sign In" %}</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

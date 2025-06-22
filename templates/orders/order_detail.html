@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">{% trans "Home" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'orders:order_history' %}">{% trans "My Orders" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% trans "Order" %} #{{ order.id }}</li>
+        </ol>
+    </nav>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{% trans "Order" %} #{{ order.id }}</h5>
+            <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-primary{% endif %}">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6>{% trans "Order Information" %}</h6>
+                    <p class="mb-1"><strong>{% trans "Order Date" %}:</strong> {{ order.created_at|date:"F j, Y, H:i" }}</p>
+                    <p class="mb-1"><strong>{% trans "Order Status" %}:</strong> {{ order.get_status_display }}</p>
+                    <p class="mb-1"><strong>{% trans "Payment Status" %}:</strong> 
+                        {% if order.paid %}
+                            <span class="text-success">{% trans "Paid" %}</span>
+                        {% else %}
+                            <span class="text-danger">{% trans "Unpaid" %}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <h6>{% trans "Shipping Information" %}</h6>
+                    <p class="mb-1"><strong>{% trans "Name" %}:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+                    <p class="mb-1"><strong>{% trans "Email" %}:</strong> {{ order.email }}</p>
+                    <p class="mb-1"><strong>{% trans "Phone" %}:</strong> {{ order.phone }}</p>
+                    <p class="mb-1"><strong>{% trans "Address" %}:</strong> {{ order.address }}, {{ order.city }}, {{ order.wilaya }}{% if order.postal_code %}, {{ order.postal_code }}{% endif %}</p>
+                </div>
+            </div>
+            
+            <h6>{% trans "Order Items" %}</h6>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Product" %}</th>
+                            <th>{% trans "Price" %}</th>
+                            <th>{% trans "Quantity" %}</th>
+                            <th>{% trans "Total" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.items.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            {% if item.product.main_image %}
+                                                <img src="{{ item.product.main_image.image.url }}" alt="{{ item.product.name }}" width="60" height="60" style="object-fit: cover;">
+                                            {% else %}
+                                                <img src="{% static 'img/no-image.jpg' %}" alt="No Image" width="60" height="60" style="object-fit: cover;">
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                                            <small class="text-muted">{{ item.product.artist.name }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.price }} DA</td>
+                                <td>{{ item.quantity }}</td>
+                                <td><strong>{{ item.get_cost }} DA</strong></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>{% trans "Total" %}:</strong></td>
+                            <td><strong>{{ order.get_total_cost }} DA</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            {% if order.note %}
+                <div class="mt-4">
+                    <h6>{% trans "Order Notes" %}</h6>
+                    <p>{{ order.note }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="{% url 'orders:order_history' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i> {% trans "Back to Orders" %}
+        </a>
+    </div>
+</div>
+{% endblock %}

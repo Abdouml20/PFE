@@ -1,0 +1,371 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container py-5">
+    <h1 class="mb-4">{% trans "Artist Dashboard" %}</h1>
+    
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ artist.name }}</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if artist.user.profile_picture %}
+                        <img src="{{ artist.user.profile_picture.url }}" class="rounded-circle img-fluid mb-3" style="max-width: 150px;" alt="{{ artist.name }}">
+                    {% else %}
+                        <img src="{% static 'img/no-profile.jpg' %}" class="rounded-circle img-fluid mb-3" style="max-width: 150px;" alt="No Image">
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'artists:add_product' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i> {% trans "Add New Product" %}
+                        </a>
+                        <a href="{% url 'users:edit_profile' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-user-edit me-2"></i> {% trans "Edit Profile" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'artists:artist_dashboard' %}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-tachometer-alt me-2"></i> {% trans "Dashboard" %}
+                    </a>
+                    <a href="{% url 'orders:artist_orders' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shopping-cart me-2"></i> {% trans "Manage Orders" %}
+                    </a>
+                    <a href="{% url 'categories:category_list' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-tags me-2"></i> {% trans "Manage Categories" %}
+                    </a>
+                    <a href="{% url 'artists:artist_detail' artist.pk %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user me-2"></i> {% trans "View Public Profile" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Stats -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-box fa-3x text-primary mb-3"></i>
+                            <h5>{% trans "Total Products" %}</h5>
+                            <h3>{{ products.count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-eye fa-3x text-success mb-3"></i>
+                            <h5>{% trans "Available Products" %}</h5>
+                            <h3>{{ available_products_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-star fa-3x text-warning mb-3"></i>
+                            <h5>{% trans "Featured Products" %}</h5>
+                            <h3>{{ featured_products_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Products Table -->
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "My Products" %}</h5>
+                    <a href="{% url 'artists:add_product' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> {% trans "Add Product" %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Search and Filter -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="product-search" class="form-control" placeholder="{% trans 'Search products...' %}">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 d-flex justify-content-end">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary filter-btn active" data-filter="all">{% trans "All" %}</button>
+                                <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="available">{% trans "Available" %}</button>
+                                <button type="button" class="btn btn-outline-secondary filter-btn" data-filter="unavailable">{% trans "Unavailable" %}</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% if products %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Product" %}</th>
+                                        <th>{% trans "Category" %}</th>
+                                        <th>{% trans "Price" %}</th>
+                                        <th>{% trans "Stock" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in products %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        {% if product.main_image %}
+                                                            <img src="{{ product.main_image.image.url }}" alt="{{ product.name }}" width="50" height="50" style="object-fit: cover;">
+                                                        {% else %}
+                                                            <img src="{% static 'img/no-image.jpg' %}" alt="No Image" width="50" height="50" style="object-fit: cover;">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="mb-0">{{ product.name }}</h6>
+                                                        <small class="text-muted">{{ product.created_at|date:"M d, Y" }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ product.category.name }}</td>
+                                            <td>
+                                                {% if product.discount_price %}
+                                                    <span class="text-muted text-decoration-line-through">{{ product.price }} DA</span>
+                                                    <span class="text-danger">{{ product.discount_price }} DA</span>
+                                                {% else %}
+                                                    {{ product.price }} DA
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ product.stock }}</td>
+                                            <td>
+                                                {% if product.available %}
+                                                    <span class="badge bg-success">{% trans "Available" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{% trans "Unavailable" %}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{% url 'products:product_detail' product.slug %}" class="btn btn-outline-primary" title="{% trans 'View Product' %}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'artists:edit_product' product.pk %}" class="btn btn-outline-secondary" title="{% trans 'Edit Product' %}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'artists:delete_product' product.pk %}" class="btn btn-outline-danger" title="{% trans 'Delete Product' %}">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-success toggle-availability" data-id="{{ product.pk }}" data-available="{{ product.available|yesno:'true,false' }}" title="{% if product.available %}{% trans 'Mark as Unavailable' %}{% else %}{% trans 'Mark as Available' %}{% endif %}">
+                                                        <i class="fas {% if product.available %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-4x mb-3 text-muted"></i>
+                            <h3>{% trans "No products yet" %}</h3>
+                            <p class="text-muted">{% trans "You haven't added any products yet. Start by adding your first product." %}</p>
+                            <a href="{% url 'artists:add_product' %}" class="btn btn-primary mt-3">
+                                <i class="fas fa-plus me-2"></i> {% trans "Add Product" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Product search functionality
+        const searchInput = document.getElementById('product-search');
+        const productRows = document.querySelectorAll('tbody tr');
+        
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            productRows.forEach(row => {
+                const productName = row.querySelector('h6').textContent.toLowerCase();
+                const category = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                
+                if (productName.includes(searchTerm) || category.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Filter buttons functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Add active class to clicked button
+                this.classList.add('active');
+                
+                const filter = this.getAttribute('data-filter');
+                
+                productRows.forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else if (filter === 'available') {
+                        const isAvailable = row.querySelector('.badge.bg-success') !== null;
+                        row.style.display = isAvailable ? '' : 'none';
+                    } else if (filter === 'unavailable') {
+                        const isAvailable = row.querySelector('.badge.bg-success') !== null;
+                        row.style.display = !isAvailable ? '' : 'none';
+                    }
+                });
+            });
+        });
+        
+        // Toggle product availability
+        const toggleButtons = document.querySelectorAll('.toggle-availability');
+        
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.getAttribute('data-id');
+                const isAvailable = this.getAttribute('data-available') === 'true';
+                
+                // Get UI elements to update
+                const icon = this.querySelector('i');
+                const badge = this.closest('tr').querySelector('.badge');
+                
+                // First update UI immediately for better user experience
+                if (isAvailable) {
+                    // Mark as unavailable
+                    icon.classList.remove('fa-toggle-on');
+                    icon.classList.add('fa-toggle-off');
+                    this.setAttribute('data-available', 'false');
+                    this.setAttribute('title', '{% trans "Mark as Available" %}');
+                    
+                    badge.classList.remove('bg-success');
+                    badge.classList.add('bg-secondary');
+                    badge.textContent = '{% trans "Unavailable" %}';
+                } else {
+                    // Mark as available
+                    icon.classList.remove('fa-toggle-off');
+                    icon.classList.add('fa-toggle-on');
+                    this.setAttribute('data-available', 'true');
+                    this.setAttribute('title', '{% trans "Mark as Unavailable" %}');
+                    
+                    badge.classList.remove('bg-secondary');
+                    badge.classList.add('bg-success');
+                    badge.textContent = '{% trans "Available" %}';
+                }
+                
+                // Get the CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Make an AJAX call to update the product availability on the server
+                fetch(`/artists/products/toggle-availability/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ available: !isAvailable })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success) {
+                        // Revert UI changes if there was an error
+                        alert('Error: ' + data.message);
+                        
+                        // Reset the UI to its original state
+                        if (isAvailable) {
+                            icon.classList.remove('fa-toggle-off');
+                            icon.classList.add('fa-toggle-on');
+                            this.setAttribute('data-available', 'true');
+                            
+                            badge.classList.remove('bg-secondary');
+                            badge.classList.add('bg-success');
+                            badge.textContent = '{% trans "Available" %}';
+                        } else {
+                            icon.classList.remove('fa-toggle-on');
+                            icon.classList.add('fa-toggle-off');
+                            this.setAttribute('data-available', 'false');
+                            
+                            badge.classList.remove('bg-success');
+                            badge.classList.add('bg-secondary');
+                            badge.textContent = '{% trans "Unavailable" %}';
+                        }
+                    } else {
+                        // Show success message
+                        const statusText = data.available ? '{% trans "Available" %}' : '{% trans "Unavailable" %}';
+                        const message = `{% trans "Product is now" %} ${statusText}`;
+                        
+                        // Create a temporary success message
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                        alertDiv.style.top = '20px';
+                        alertDiv.style.right = '20px';
+                        alertDiv.style.zIndex = '9999';
+                        alertDiv.innerHTML = `
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        `;
+                        document.body.appendChild(alertDiv);
+                        
+                        // Remove the alert after 3 seconds
+                        setTimeout(() => {
+                            alertDiv.remove();
+                        }, 3000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the product availability.');
+                    
+                    // Reset the UI to its original state
+                    if (isAvailable) {
+                        icon.classList.remove('fa-toggle-off');
+                        icon.classList.add('fa-toggle-on');
+                        this.setAttribute('data-available', 'true');
+                        
+                        badge.classList.remove('bg-secondary');
+                        badge.classList.add('bg-success');
+                        badge.textContent = '{% trans "Available" %}';
+                    } else {
+                        icon.classList.remove('fa-toggle-on');
+                        icon.classList.add('fa-toggle-off');
+                        this.setAttribute('data-available', 'false');
+                        
+                        badge.classList.remove('bg-success');
+                        badge.classList.add('bg-secondary');
+                        badge.textContent = '{% trans "Unavailable" %}';
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

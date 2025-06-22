@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'artists:artist_dashboard' %}">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% trans "Manage Orders" %}</li>
+        </ol>
+    </nav>
+    
+    <!-- Order Stats -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">{% trans "Total Orders" %}</h6>
+                    <h3>{{ total_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">{% trans "Pending" %}</h6>
+                    <h3 class="text-warning">{{ pending_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">{% trans "Processing" %}</h6>
+                    <h3 class="text-info">{{ processing_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">{% trans "Shipped" %}</h6>
+                    <h3 class="text-primary">{{ shipped_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">{% trans "Delivered" %}</h6>
+                    <h3 class="text-success">{{ delivered_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">{% trans "Cancelled" %}</h6>
+                    <h3 class="text-danger">{{ cancelled_orders }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <h5 class="mb-0">{% trans "Orders" %}</h5>
+                </div>
+                <div class="col-md-4">
+                    <form method="get" class="d-flex">
+                        <input type="text" name="search" class="form-control" placeholder="{% trans 'Search orders...' %}" value="{{ search_query }}">
+                        <button type="submit" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <form method="get" class="d-flex justify-content-end">
+                        <select name="status" class="form-select" onchange="this.form.submit()">
+                            <option value="all" {% if status_filter == 'all' or not status_filter %}selected{% endif %}>{% trans "All Orders" %}</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                            <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>{% trans "Processing" %}</option>
+                            <option value="shipped" {% if status_filter == 'shipped' %}selected{% endif %}>{% trans "Shipped" %}</option>
+                            <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>{% trans "Delivered" %}</option>
+                            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Order ID" %}</th>
+                                <th>{% trans "Customer" %}</th>
+                                <th>{% trans "Date" %}</th>
+                                <th>{% trans "Status" %}</th>
+                                <th>{% trans "Your Items" %}</th>
+                                <th>{% trans "Actions" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr>
+                                    <td>#{{ order.id }}</td>
+                                    <td>{{ order.first_name }} {{ order.last_name }}</td>
+                                    <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                            <span class="badge bg-warning">{% trans "Pending" %}</span>
+                                        {% elif order.status == 'processing' %}
+                                            <span class="badge bg-info">{% trans "Processing" %}</span>
+                                        {% elif order.status == 'shipped' %}
+                                            <span class="badge bg-primary">{% trans "Shipped" %}</span>
+                                        {% elif order.status == 'delivered' %}
+                                            <span class="badge bg-success">{% trans "Delivered" %}</span>
+                                        {% elif order.status == 'cancelled' %}
+                                            <span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% with artist_items=order_items|dictsortreversed:"order_id"|dictsort:"product.artist.id" %}
+                                            {% for item in artist_items %}
+                                                {% if item.order_id == order.id %}
+                                                    <div class="mb-1">{{ item.quantity }}x {{ item.product.name }}</div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'orders:artist_order_detail' order.id %}" class="btn btn-outline-primary" title="{% trans 'View Order Details' %}">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="{% trans 'Update Status' %}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><h6 class="dropdown-header">{% trans "Update Status" %}</h6></li>
+                                                <li><button class="dropdown-item update-status" data-id="{{ order.id }}" data-status="pending" {% if order.status == 'pending' %}disabled{% endif %}>{% trans "Pending" %}</button></li>
+                                                <li><button class="dropdown-item update-status" data-id="{{ order.id }}" data-status="processing" {% if order.status == 'processing' %}disabled{% endif %}>{% trans "Processing" %}</button></li>
+                                                <li><button class="dropdown-item update-status" data-id="{{ order.id }}" data-status="shipped" {% if order.status == 'shipped' %}disabled{% endif %}>{% trans "Shipped" %}</button></li>
+                                                <li><button class="dropdown-item update-status" data-id="{{ order.id }}" data-status="delivered" {% if order.status == 'delivered' %}disabled{% endif %}>{% trans "Delivered" %}</button></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><button class="dropdown-item update-status text-danger" data-id="{{ order.id }}" data-status="cancelled" {% if order.status == 'cancelled' %}disabled{% endif %}>{% trans "Cancelled" %}</button></li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-4x mb-3 text-muted"></i>
+                    <h3>{% trans "No orders found" %}</h3>
+                    <p class="text-muted">{% trans "You don't have any orders matching your criteria." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // CSRF token setup for AJAX requests
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+        
+        // Update order status
+        const updateStatusButtons = document.querySelectorAll('.update-status');
+        
+        updateStatusButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-id');
+                const newStatus = this.getAttribute('data-status');
+                
+                fetch(`/orders/artist/update-status/${orderId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        alert(data.message);
+                        
+                        // Refresh the page to show updated status
+                        window.location.reload();
+                    } else {
+                        // Show error message
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the order status.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

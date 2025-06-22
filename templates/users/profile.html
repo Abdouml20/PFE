@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- User Info -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "My Profile" %}</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" class="rounded-circle img-fluid mb-3" style="max-width: 150px;" alt="{{ user.username }}">
+                    {% else %}
+                        <img src="{% static 'img/no-profile.jpg' %}" class="rounded-circle img-fluid mb-3" style="max-width: 150px;" alt="No Image">
+                    {% endif %}
+                    <h4>{{ user.get_full_name }}</h4>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'users:edit_profile' %}" class="btn btn-primary">
+                            <i class="fas fa-user-edit me-2"></i> {% trans "Edit Profile" %}
+                        </a>
+                        {% if user.role == 'artist' %}
+                            <a href="{% url 'artists:artist_dashboard' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-palette me-2"></i> {% trans "Artist Dashboard" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <i class="fas fa-envelope me-2"></i> {{ user.email }}
+                    </li>
+                    {% if user.gender %}
+                        <li class="list-group-item">
+                            <i class="fas fa-user me-2"></i> 
+                            {% if user.gender == 'M' %}
+                                {% trans "Male" %}
+                            {% elif user.gender == 'F' %}
+                                {% trans "Female" %}
+                            {% else %}
+                                {% trans "Other" %}
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                    {% if user.wilaya %}
+                        <li class="list-group-item">
+                            <i class="fas fa-map-marker-alt me-2"></i> {{ user.wilaya }}
+                        </li>
+                    {% endif %}
+                    <li class="list-group-item">
+                        <i class="fas fa-user-tag me-2"></i> 
+                        {% if user.role == 'artist' %}
+                            {% trans "Artist" %}
+                        {% else %}
+                            {% trans "Customer" %}
+                        {% endif %}
+                    </li>
+                    {% if user.role == 'artist' and user.delivery_agency %}
+                        <li class="list-group-item">
+                            <i class="fas fa-truck me-2"></i> {% trans "Delivery Agency" %}: {{ user.delivery_agency }}
+                        </li>
+                    {% endif %}
+                    <li class="list-group-item">
+                        <i class="fas fa-calendar-alt me-2"></i> {% trans "Joined" %} {{ user.date_joined|date:"F Y" }}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Order History -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Recent Orders" %}</h5>
+                    <a href="{% url 'orders:order_history' %}" class="btn btn-sm btn-outline-primary">
+                        {% trans "View All" %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Order ID" %}</th>
+                                        <th>{% trans "Date" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Total" %}</th>
+                                        <th>{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders|slice:":5" %}
+                                        <tr>
+                                            <td>#{{ order.id }}</td>
+                                            <td>{{ order.created_at|date:"F j, Y" }}</td>
+                                            <td>
+                                                <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-primary{% endif %}">
+                                                    {{ order.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ order.get_total_cost }} DA</td>
+                                            <td>
+                                                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                                    {% trans "View" %}
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-4x mb-3 text-muted"></i>
+                            <h3>{% trans "No orders yet" %}</h3>
+                            <p class="text-muted">{% trans "You haven't placed any orders yet." %}</p>
+                            <a href="{% url 'products:product_list' %}" class="btn btn-primary mt-3">
+                                {% trans "Start Shopping" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

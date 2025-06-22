@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">{% trans "Artists" %}</h1>
+    
+    <div class="row">
+        {% for artist in page_obj %}
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div class="card artist-card h-100">
+                    <a href="{% url 'artists:artist_detail' artist.pk %}">
+                        {% if artist.user.profile_picture %}
+                            <img src="{{ artist.user.profile_picture.url }}" class="card-img-top" alt="{{ artist.name }}">
+                        {% else %}
+                            <img src="{% static 'img/no-profile.jpg' %}" class="card-img-top" alt="No Image">
+                        {% endif %}
+                    </a>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ artist.name }}</h5>
+                        {% if artist.bio %}
+                            <p class="card-text text-muted">{{ artist.bio|truncatechars:100 }}</p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            {% if artist.availability %}
+                                <span class="badge bg-success">{% trans "Available for commissions" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "Not available" %}</span>
+                            {% endif %}
+                            <a href="{% url 'artists:artist_detail' artist.pk %}" class="btn btn-outline-primary btn-sm">
+                                {% trans "View Profile" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-users fa-4x mb-3 text-muted"></i>
+                <h3>{% trans "No artists found" %}</h3>
+                <p class="text-muted">{% trans "There are no artists available at the moment." %}</p>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">{% trans "First" %}</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">{% trans "First" %}</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <li class="page-item active">
+                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                        </li>
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                            {% trans "Last" %}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">{% trans "Last" %}</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">{% trans "Checkout" %}</h1>
+    
+    <div class="row">
+        <!-- Order Form -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Shipping Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.phone|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.address|as_crispy_field }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                {{ form.wilaya|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.city|as_crispy_field }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.postal_code|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            {{ form.note|as_crispy_field }}
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">{% trans "Place Order" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Order Summary" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% for detail in shipping_details %}
+                        <div class="d-flex mb-3">
+                            <div class="me-3">
+                                {% if detail.item.product.main_image %}
+                                    <img src="{{ detail.item.product.main_image.image.url }}" alt="{{ detail.item.product.name }}" width="60" height="60" style="object-fit: cover;">
+                                {% else %}
+                                    <img src="{% static 'img/no-image.jpg' %}" alt="No Image" width="60" height="60" style="object-fit: cover;">
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0">{{ detail.item.product.name }}</h6>
+                                <small class="text-muted">{{ detail.item.quantity }} x 
+                                    {% if detail.item.product.discount_price %}
+                                        {{ detail.item.product.discount_price }} DA
+                                    {% else %}
+                                        {{ detail.item.product.price }} DA
+                                    {% endif %}
+                                </small>
+                                {% if detail.agency %}
+                                    <div class="text-muted small">{% trans "Delivery Agency" %}: {{ detail.agency }}</div>
+                                    <div class="text-muted small">{% trans "Shipping" %}: <span class="shipping-price">{{ detail.shipping_price }} DA</span></div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <strong>{{ detail.item.get_cost }} DA</strong>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{% trans "Subtotal" %}</span>
+                        <span id="order-subtotal" data-value="{{ cart.get_total_cost }}">{{ cart.get_total_cost }} DA</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{% trans "Shipping" %}</span>
+                        <span id="shipping-total">{{ shipping_total }} DA</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-0">
+                        <strong>{% trans "Total" %}</strong>
+                        <strong id="order-total">{{ cart.get_total_cost|add:shipping_total }} DA</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+// Wilaya shipping prices (must match backend)
+const wilayaShippingPrices = {
+    'adrar': 500, 'chlef': 600, 'laghouat': 700, 'oum-el-bouaghi': 800, 'batna': 900, 'bejaia': 1000,
+    'biskra': 1100, 'bechar': 1200, 'blida': 1300, 'bouira': 1400, 'tamanrasset': 1500, 'tebessa': 1600,
+    'tlemcen': 1700, 'tiaret': 1800, 'tizi-ouzou': 1900, 'algiers': 2000, 'djelfa': 2100, 'jijel': 2200,
+    'setif': 2300, 'saida': 2400, 'skikda': 2500, 'sidi-bel-abbes': 2600, 'annaba': 2700, 'guelma': 2800,
+    'constantine': 2900, 'medea': 3000, 'mostaganem': 3100, 'msila': 3200, 'mascara': 3300, 'ouargla': 3400,
+    'oran': 3500, 'el-bayadh': 3600, 'illizi': 3700, 'bordj-bou-arreridj': 3800, 'boumerdes': 3900,
+    'el-tarf': 4000, 'tindouf': 4100, 'tissemsilt': 4200, 'el-oued': 4300, 'khenchela': 4400, 'souk-ahras': 4500,
+    'tipaza': 4600, 'mila': 4700, 'ain-defla': 4800, 'naama': 4900, 'ain-temouchent': 5000, 'ghardaia': 5100,
+    'relizane': 5200, 'timimoun': 5300, 'bordj-badji-mokhtar': 5400, 'ouled-djellal': 5500, 'beni-abbes': 5600,
+    'in-salah': 5700, 'in-guezzam': 5800, 'touggourt': 5900, 'djanet': 6000, 'el-mghair': 6100, 'el-menia': 6200,
+};
+
+function updateShippingAndTotal() {
+    const wilayaSelect = document.getElementById('id_wilaya');
+    const wilaya = wilayaSelect ? wilayaSelect.value : null;
+    const shippingPrice = wilayaShippingPrices[wilaya] || 0;
+    // Update shipping total
+    const shippingTotalEl = document.getElementById('shipping-total');
+    if (shippingTotalEl) shippingTotalEl.textContent = shippingPrice + ' DA';
+    // Update order total
+    const subtotal = parseInt(document.getElementById('order-subtotal').dataset.value) || 0;
+    const orderTotalEl = document.getElementById('order-total');
+    if (orderTotalEl) orderTotalEl.textContent = (subtotal + shippingPrice) + ' DA';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const wilayaSelect = document.getElementById('id_wilaya');
+    if (wilayaSelect) {
+        wilayaSelect.addEventListener('change', updateShippingAndTotal);
+        updateShippingAndTotal();
+    }
+});
+</script>
+{% endblock %}

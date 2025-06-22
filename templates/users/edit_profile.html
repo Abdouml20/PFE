@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'users:profile' %}">{% trans "My Profile" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% trans "Edit Profile" %}</li>
+        </ol>
+    </nav>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Edit Profile" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.email|as_crispy_field }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.gender|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.wilaya|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3" id="delivery-agency-group">
+                            {{ form.delivery_agency|as_crispy_field }}
+                        </div>
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var role = '{{ user.role }}';
+                            var deliveryGroup = document.getElementById('delivery-agency-group');
+                            if (role === 'artist') {
+                                deliveryGroup.style.display = '';
+                            } else {
+                                deliveryGroup.style.display = 'none';
+                            }
+                        });
+                        </script>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">{% trans "Profile Picture" %}</label>
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture.url }}" class="rounded-circle" width="80" height="80" alt="{{ user.username }}">
+                                    {% else %}
+                                        <img src="{% static 'img/no-profile.jpg' %}" class="rounded-circle" width="80" height="80" alt="No Image">
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    {{ form.profile_picture|as_crispy_field }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> {% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> {% trans "Save Changes" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

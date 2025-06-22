@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">{% trans "Home" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'categories:category_list' %}">{% trans "Categories" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1>{{ category.name }}</h1>
+                {% if category.description %}
+                    <p class="text-muted">{{ category.description }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a href="{% url 'categories:category_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i> {% trans "All Categories" %}
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subcategories -->
+    {% if subcategories %}
+        <div class="mb-4">
+            <h5 class="mb-3">{% trans "Subcategories" %}</h5>
+            <div class="row">
+                {% for subcategory in subcategories %}
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <a href="{% url 'categories:category_detail' subcategory.slug %}" class="text-decoration-none">
+                            <div class="card h-100">
+                                {% if subcategory.image %}
+                                    <img src="{{ subcategory.image.url }}" class="card-img-top" alt="{{ subcategory.name }}" style="height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <img src="{% static 'img/no-category.jpg' %}" class="card-img-top" alt="No Image" style="height: 150px; object-fit: cover;">
+                                {% endif %}
+                                <div class="card-body text-center">
+                                    <h6 class="card-title mb-0">{{ subcategory.name }}</h6>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Products -->
+    <div class="mb-4">
+        <h5 class="mb-3">{% trans "Products" %}</h5>
+        
+        {% if page_obj %}
+            <div class="row">
+                {% for product in page_obj %}
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="card product-card h-100">
+                            {% if product.discount_price %}
+                                <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                            {% endif %}
+                            <a href="{% url 'products:product_detail' product.slug %}">
+                                {% if product.main_image %}
+                                    <img src="{{ product.main_image.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="{% static 'img/no-image.jpg' %}" class="card-img-top" alt="No Image">
+                                {% endif %}
+                            </a>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text text-muted">{{ product.artist.name }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if product.discount_price %}
+                                            <span class="text-muted text-decoration-line-through">{{ product.price }} DA</span>
+                                            <span class="text-danger ms-2">{{ product.discount_price }} DA</span>
+                                        {% else %}
+                                            <span>{{ product.price }} DA</span>
+                                        {% endif %}
+                                    </div>
+                                    <form method="post" action="{% url 'cart:cart_add' product.id %}" class="add-to-cart-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.paginator.num_pages > 1 %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">{% trans "First" %}</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">{% trans "First" %}</a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for i in page_obj.paginator.page_range %}
+                            {% if page_obj.number == i %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                </li>
+                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                    {% trans "Last" %}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">{% trans "Last" %}</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-box-open fa-4x mb-3 text-muted"></i>
+                <h3>{% trans "No products found" %}</h3>
+                <p class="text-muted">{% trans "There are no products in this category yet." %}</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% load i18n %}
+{% load static %}
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'products:product_list' %}">
+            <img src="{% static 'img/Crafty.png' %}" alt="Crafty Logo" height="40" class="d-inline-block align-top">
+            <small class="crafty-tagline">Handcrafted with love</small>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'products:product_list' %}">
+                        {% trans "Home" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/categories/' in request.path %}active{% endif %}" href="{% url 'categories:craft_category_list' %}">
+                        {% trans "Categories" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/artists/' in request.path %}active{% endif %}" href="{% url 'artists:artist_list' %}">
+                        {% trans "Artisans" %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.path|slice:':6' == '/blog/' %}active{% endif %}" href="{% url 'blog:blog_list' %}">
+                        {% trans "Blog" %}
+                    </a>
+                </li>
+            </ul>
+            
+            <!-- Search Form -->
+            <form class="d-flex mx-auto search-form" action="{% url 'products:product_search' %}" method="GET">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input class="form-control" type="search" name="q" placeholder="{% trans 'Search for handcrafted treasures...' %}" aria-label="Search">
+                    <button class="btn search-btn" type="submit"><i class="fas fa-arrow-right"></i></button>
+                </div>
+            </form>
+            
+            <!-- User Menu -->
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <!-- Language selector has been removed -->
+                
+                <!-- Cart -->
+                <li class="nav-item">
+                    <a class="nav-link position-relative {% if '/cart/' in request.path %}active{% endif %}" href="{% url 'cart:cart_detail' %}">
+                        <i class="fas fa-shopping-cart"></i>
+                        {% if cart.get_total_items > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ cart.get_total_items }}
+                            </span>
+                        {% endif %}
+                    </a>
+                </li>
+                
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user"></i> {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            {% if user.role == 'artist' %}
+                                <li><a class="dropdown-item" href="{% url 'artists:artist_dashboard' %}">{% trans "Artist Dashboard" %}</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'users:profile' %}">{% trans "My Profile" %}</a></li>
+                            <li><a class="dropdown-item" href="{% url 'orders:order_history' %}">{% trans "My Orders" %}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'account_logout' %}">{% trans "Logout" %}</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'account_login' %}">{% trans "Login" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'users:register' %}">{% trans "Register" %}</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

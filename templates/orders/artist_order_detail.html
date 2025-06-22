@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'artists:artist_dashboard' %}">{% trans "Dashboard" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'orders:artist_orders' %}">{% trans "Orders" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{% trans "Order" %} #{{ order.id }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Order Status -->
+    <div class="card mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{% trans "Order" %} #{{ order.id }}</h5>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if order.status == 'pending' %}
+                        <span class="badge bg-warning">{% trans "Pending" %}</span>
+                    {% elif order.status == 'processing' %}
+                        <span class="badge bg-info">{% trans "Processing" %}</span>
+                    {% elif order.status == 'shipped' %}
+                        <span class="badge bg-primary">{% trans "Shipped" %}</span>
+                    {% elif order.status == 'delivered' %}
+                        <span class="badge bg-success">{% trans "Delivered" %}</span>
+                    {% elif order.status == 'cancelled' %}
+                        <span class="badge bg-danger">{% trans "Cancelled" %}</span>
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="statusDropdown">
+                    <li><h6 class="dropdown-header">{% trans "Update Status" %}</h6></li>
+                    <li><button class="dropdown-item update-status" data-id="{{ order.id }}" data-status="pending" {% if order.status == 'pending' %}disabled{% endif %}>{% trans "Pending" %}</button></li>
+                    <li><button class="dropdown-item update-status" data-id="{{ order.id }}" data-status="processing" {% if order.status == 'processing' %}disabled{% endif %}>{% trans "Processing" %}</button></li>
+                    <li><button class="dropdown-item update-status" data-id="{{ order.id }}" data-status="shipped" {% if order.status == 'shipped' %}disabled{% endif %}>{% trans "Shipped" %}</button></li>
+                    <li><button class="dropdown-item update-status" data-id="{{ order.id }}" data-status="delivered" {% if order.status == 'delivered' %}disabled{% endif %}>{% trans "Delivered" %}</button></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item update-status text-danger" data-id="{{ order.id }}" data-status="cancelled" {% if order.status == 'cancelled' %}disabled{% endif %}>{% trans "Cancelled" %}</button></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3">{% trans "Order Information" %}</h6>
+                    <p><strong>{% trans "Order Date:" %}</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                    <p><strong>{% trans "Payment Status:" %}</strong> 
+                        {% if order.paid %}
+                            <span class="badge bg-success">{% trans "Paid" %}</span>
+                        {% else %}
+                            <span class="badge bg-warning">{% trans "Pending Payment" %}</span>
+                        {% endif %}
+                    </p>
+                    {% if order.note %}
+                        <p><strong>{% trans "Customer Note:" %}</strong> {{ order.note }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-muted mb-3">{% trans "Customer Information" %}</h6>
+                    <p><strong>{% trans "Name:" %}</strong> {{ order.first_name }} {{ order.last_name }}</p>
+                    <p><strong>{% trans "Email:" %}</strong> {{ order.email }}</p>
+                    <p><strong>{% trans "Phone:" %}</strong> {{ order.phone }}</p>
+                    <p><strong>{% trans "Address:" %}</strong> {{ order.address }}, {{ order.city }}, {{ order.wilaya }}{% if order.postal_code %}, {{ order.postal_code }}{% endif %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Items -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">{% trans "Your Products in This Order" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Product" %}</th>
+                            <th>{% trans "Price" %}</th>
+                            <th>{% trans "Quantity" %}</th>
+                            <th class="text-end">{% trans "Subtotal" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            {% if item.product.main_image %}
+                                                <img src="{{ item.product.main_image.image.url }}" alt="{{ item.product.name }}" width="50" height="50" style="object-fit: cover;">
+                                            {% else %}
+                                                <img src="{% static 'img/no-image.jpg' %}" alt="No Image" width="50" height="50" style="object-fit: cover;">
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                                            <small class="text-muted">{{ item.product.category.name }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.price }} DA</td>
+                                <td>{{ item.quantity }}</td>
+                                <td class="text-end">{{ item.get_cost }} DA</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>{% trans "Total for Your Products:" %}</strong></td>
+                            <td class="text-end"><strong>{{ artist_subtotal }} DA</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Timeline -->
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">{% trans "Order Timeline" %}</h5>
+        </div>
+        <div class="card-body">
+            <ul class="timeline">
+                <li class="timeline-item">
+                    <div class="timeline-marker {% if order.status != 'cancelled' %}bg-success{% else %}bg-secondary{% endif %}"></div>
+                    <div class="timeline-content">
+                        <h6 class="mb-0">{% trans "Order Placed" %}</h6>
+                        <small class="text-muted">{{ order.created_at|date:"F d, Y H:i" }}</small>
+                    </div>
+                </li>
+                
+                <li class="timeline-item">
+                    <div class="timeline-marker {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}"></div>
+                    <div class="timeline-content">
+                        <h6 class="mb-0">{% trans "Processing" %}</h6>
+                        <small class="text-muted">{% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}{% trans "Order is being processed" %}{% elif order.status == 'cancelled' %}{% trans "Order was cancelled" %}{% else %}{% trans "Pending" %}{% endif %}</small>
+                    </div>
+                </li>
+                
+                <li class="timeline-item">
+                    <div class="timeline-marker {% if order.status == 'shipped' or order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}"></div>
+                    <div class="timeline-content">
+                        <h6 class="mb-0">{% trans "Shipped" %}</h6>
+                        <small class="text-muted">{% if order.status == 'shipped' or order.status == 'delivered' %}{% trans "Order has been shipped" %}{% elif order.status == 'cancelled' %}{% trans "Order was cancelled" %}{% else %}{% trans "Pending" %}{% endif %}</small>
+                    </div>
+                </li>
+                
+                <li class="timeline-item">
+                    <div class="timeline-marker {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-secondary{% endif %}"></div>
+                    <div class="timeline-content">
+                        <h6 class="mb-0">{% trans "Delivered" %}</h6>
+                        <small class="text-muted">{% if order.status == 'delivered' %}{% trans "Order has been delivered" %}{% elif order.status == 'cancelled' %}{% trans "Order was cancelled" %}{% else %}{% trans "Pending" %}{% endif %}</small>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Timeline styles */
+    .timeline {
+        list-style-type: none;
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 0;
+    }
+    
+    .timeline:before {
+        content: ' ';
+        background: #e9ecef;
+        display: inline-block;
+        position: absolute;
+        left: 9px;
+        width: 2px;
+        height: 100%;
+        z-index: 1;
+    }
+    
+    .timeline-item {
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        left: -30px;
+        top: 0;
+        z-index: 2;
+    }
+    
+    .timeline-content {
+        padding-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // CSRF token setup for AJAX requests
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+        
+        // Update order status
+        const updateStatusButtons = document.querySelectorAll('.update-status');
+        
+        updateStatusButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-id');
+                const newStatus = this.getAttribute('data-status');
+                
+                fetch(`/orders/artist/update-status/${orderId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message
+                        alert(data.message);
+                        
+                        // Refresh the page to show updated status
+                        window.location.reload();
+                    } else {
+                        // Show error message
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the order status.');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

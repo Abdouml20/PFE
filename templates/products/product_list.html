@@ -1,0 +1,520 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    /* Typing Animation Styles */
+    .typing-effect {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .typing-effect::after {
+        content: '|';
+        position: absolute;
+        right: -8px;
+        color: var(--secondary-color);
+        animation: cursor-blink 1s infinite;
+    }
+    
+    @keyframes cursor-blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+    
+    .hero-title, .hero-subtitle {
+        visibility: hidden;
+    }
+    
+    .hero-title.visible, .hero-subtitle.visible {
+        visibility: visible;
+    }
+    
+    .hero-cta {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    
+    .hero-cta.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /* Animated GIF Styles */
+    .hero-image-container {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        background-color: rgba(139, 93, 43, 0.05);
+        padding: 15px;
+        border: 1px solid rgba(61, 122, 116, 0.2);
+    }
+    
+    .hero-image {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        filter: saturate(1.2) contrast(1.1);
+    }
+    
+    .hero-image:hover {
+        transform: scale(1.02);
+    }
+    
+    .hero-image-decoration-1 {
+        width: 100%;
+        height: 100%;
+        background-color: var(--secondary-color);
+        top: -10px;
+        right: -10px;
+        opacity: 0.1;
+        border-radius: 10px;
+        position: absolute;
+        z-index: -1;
+    }
+    
+    .hero-image-decoration-2 {
+        width: 100%;
+        height: 100%;
+        background-color: var(--primary-color);
+        bottom: -10px;
+        left: -10px;
+        opacity: 0.1;
+        border-radius: 10px;
+        position: absolute;
+        z-index: -1;
+    }
+</style>
+{% endblock %}
+
+{% block hero %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-background">
+        <div class="hero-pattern"></div>
+    </div>
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 hero-content">
+                <h1 class="hero-title visible"><span class="typing-effect" id="hero-title"></span></h1>
+                <p class="hero-subtitle mb-4"><span class="typing-effect" id="hero-subtitle"></span></p>
+                <div class="hero-cta">
+                    <a href="{% url 'categories:category_list' %}" class="btn btn-primary btn-lg">
+                        <span>{% trans "Browse Categories" %}</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <a href="{% url 'artists:artist_list' %}" class="btn btn-outline-primary btn-lg">
+                        <span>{% trans "Meet Our Artists" %}</span>
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="hero-image-container">
+                    <div class="hero-image-decoration-1"></div>
+                    <div class="hero-image-decoration-2"></div>
+                    <img src="{% static 'img/Crafty logo.png' %}" alt="Handcrafted Products" class="hero-image">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Text to type
+        const heroTitle = "{% trans 'Discover Unique Handcrafted Products' %}";
+        const heroSubtitle = "{% trans 'Support local artists and find one-of-a-kind treasures crafted with passion and tradition' %}";
+        
+        // Elements
+        const titleElement = document.getElementById('hero-title');
+        const subtitleElement = document.getElementById('hero-subtitle');
+        const ctaElement = document.querySelector('.hero-cta');
+        const subtitleContainer = document.querySelector('.hero-subtitle');
+        
+        // Make CTA visible immediately
+        ctaElement.classList.add('visible');
+        
+        // Type and erase text function
+        function typeAndEraseText(element, text, typeSpeed, eraseSpeed, pauseDuration, callback) {
+            let i = 0;
+            element.textContent = '';
+            
+            // Typing phase
+            function typing() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(typing, typeSpeed);
+                } else {
+                    // Pause before erasing
+                    setTimeout(erasing, pauseDuration);
+                }
+            }
+            
+            // Erasing phase
+            function erasing() {
+                if (element.textContent.length > 0) {
+                    element.textContent = element.textContent.substring(0, element.textContent.length - 1);
+                    setTimeout(erasing, eraseSpeed);
+                } else {
+                    if (callback) callback();
+                }
+            }
+            
+            typing();
+        }
+        
+        // Function to continuously animate both title and subtitle
+        function animateBothTexts() {
+            // Make title visible and animate it
+            document.querySelector('.hero-title').classList.add('visible');
+            typeAndEraseText(titleElement, heroTitle, 70, 30, 2000, function() {
+                // After title is erased, animate subtitle
+                subtitleContainer.classList.add('visible');
+                typeAndEraseText(subtitleElement, heroSubtitle, 50, 20, 2000, function() {
+                    // After subtitle is erased, start the cycle again
+                    setTimeout(animateBothTexts, 500);
+                });
+            });
+        }
+        
+        // Start the animation cycle
+        animateBothTexts();
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- Latest Products -->
+<section class="featured-section latest-products-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">{% trans "Latest Products" %}</h2>
+            <div class="section-subtitle">{% trans "Fresh creations from our workshop" %}</div>
+            <div class="section-decoration">
+                <span></span>
+                <i class="fas fa-gem"></i>
+                <span></span>
+            </div>
+        </div>
+        <div class="row">
+            {% for product in latest_products %}
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card h-100">
+                        {% if product.discount_price %}
+                            <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                        {% endif %}
+                        <a href="{% url 'products:product_detail' product.slug %}">
+                            {% if product.main_image %}
+                                <img src="{{ product.main_image.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="{% static 'img/no-image.jpg' %}" class="card-img-top" alt="No Image">
+                            {% endif %}
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.artist.name }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="text-muted text-decoration-line-through">{{ product.price }} DA</span>
+                                        <span class="text-danger ms-2">{{ product.discount_price }} DA</span>
+                                    {% else %}
+                                        <span>{{ product.price }} DA</span>
+                                    {% endif %}
+                                </div>
+                                <form method="post" action="{% url 'cart:cart_add' product.id %}" class="add-to-cart-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>{% trans "No products available." %}</p>
+                </div>
+            {% endfor %}
+        </div>
+      
+    </div>
+</section>
+
+<!-- Craft Categories Section -->
+<section class="craft-categories-section py-5">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">{% trans "Explore Craft Categories" %}</h2>
+            <div class="section-subtitle">{% trans "Discover unique handcrafted treasures by craft type" %}</div>
+            <div class="section-decoration">
+                <span></span>
+                <i class="fas fa-hands-helping"></i>
+                <span></span>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Traditional Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=traditional" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://plus.unsplash.com/premium_photo-1661680098318-b4602d66ff47?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="card-img-top" alt="Traditional Crafts">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Traditional Crafts" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Authentic handcrafted items from Algeria" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Clothing Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=clothing" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://i.pinimg.com/736x/7f/76/d8/7f76d8b6442a30d777fce4cbc760188c.jpg" class="card-img-top" alt="Handcrafted Clothing">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Clothing" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Handmade clothing with traditional designs" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Accessories Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=accessories" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://i.pinimg.com/736x/32/cc/e7/32cce79e215a0cb3d423e5ce99154a7b.jpg" class="card-img-top" alt="Handcrafted Accessories">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Accessories" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Unique handcrafted accessories for any occasion" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Jewelry Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=jewelry" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" class="card-img-top" alt="Handcrafted Jewelry">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Jewelry" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Handcrafted jewelry with unique designs" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Home Decor Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=home-decor" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1616046229478-9901c5536a45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80" class="card-img-top" alt="Home Decor Items">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Home Decor" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Artisanal items to beautify your home" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Crockery Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=crockery" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1169&q=80" class="card-img-top" alt="Handcrafted Crockery">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Crockery" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Handcrafted pottery and ceramic items" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Toys & Games Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=toys-games" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" class="card-img-top" alt="Handcrafted Toys & Games">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Toys & Games" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Handcrafted toys and traditional games" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Art & Painting Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=art-painting" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://i.pinimg.com/736x/21/52/05/215205fa5fedbcbb0d0cdfe2f09a76f4.jpg" class="card-img-top" alt="Art & Painting">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Art & Painting" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Original artwork and paintings by local artists" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Gift Ideas Category -->
+            <div class="col-md-4 col-sm-6 mb-4">
+                <a href="{% url 'products:product_search' %}?craft_category=gift-ideas" class="text-decoration-none">
+                    <div class="card craft-category-card h-100">
+                        <div class="craft-category-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80" class="card-img-top" alt="Gift Ideas">
+                            <div class="craft-category-overlay">
+                                <span>{% trans "Explore" %}</span>
+                            </div>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{% trans "Gift Ideas" %}</h5>
+                            <p class="card-text small text-muted">{% trans "Perfect handcrafted gifts for any occasion" %}</p>
+                            <button class="btn-explore">{% trans "Explore" %} <i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">{% trans "Shop by Category" %}</h2>
+            <div class="section-subtitle">{% trans "Explore our curated collection of handcrafted treasures" %}</div>
+            <div class="section-decoration">
+                <span></span>
+                <i class="fas fa-th-large"></i>
+                <span></span>
+            </div>
+        </div>
+        <div class="row">
+            {% for category in categories|slice:":4" %}
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <a href="{% url 'categories:category_detail' category.slug %}" class="text-decoration-none">
+                        <div class="card category-card h-100">
+                            {% if category.image %}
+                                <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}">
+                            {% else %}
+                                <img src="{% static 'img/no-category.jpg' %}" class="card-img-top" alt="No Image">
+                            {% endif %}
+                            <div class="card-body text-center">
+                                <h5 class="card-title">{{ category.name }}</h5>
+                                {% if category.description %}
+                                <p class="card-text small text-muted">{{ category.description|truncatechars:60 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'categories:category_list' %}" class="btn btn-outline-primary">{% trans "View All Categories" %}</a>
+        </div>
+    </div>
+</section>
+
+<!-- Most Liked Blog Posts Section -->
+<section class="blog-section py-5">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">{% trans "From the Blog" %}</h2>
+            <div class="section-subtitle">{% trans "See what our artists are sharing" %}</div>
+            <div class="section-decoration">
+                <span></span>
+                <i class="fas fa-feather-alt"></i>
+                <span></span>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            {% for post in most_liked_blog_posts %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ post.title }}</h5>
+                            <p class="card-text">{{ post.content|truncatewords:25 }}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center bg-white border-0">
+                            <small class="text-muted">By {{ post.author.username }}</small>
+                            <span class="text-danger"><i class="fas fa-heart"></i> {{ post.total_likes }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>{% trans "No blog posts yet." %}</p>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-3">
+            <a href="{% url 'blog:blog_list' %}" class="btn btn-outline-primary btn-lg">{% trans "View All Blog Posts" %}</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

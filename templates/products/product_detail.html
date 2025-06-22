@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">{% trans "Home" %}</a></li>
+            {% if product.craft_category %}
+                <li class="breadcrumb-item"><a href="{% url 'categories:craft_category_detail' product.craft_category %}">{{ craft_category_name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6 mb-4">
+            <div id="main-media-container" class="mb-3">
+                {% if product.video %}
+                    <video id="main-product-video" controls style="max-width:100%;height:auto; display:none;">
+                        <source src="{{ product.video.url }}" type="{{ product.video_type }}">
+                        Your browser does not support the video tag.
+                    </video>
+                {% endif %}
+                <img id="main-product-image" 
+                    {% if product.images.exists %}
+                        src="{{ product.images.first.image.url }}"
+                    {% else %}
+                        src="{% static 'img/no-image.jpg' %}" 
+                        style="display:block;"
+                    {% endif %}
+                    class="img-fluid product-detail-img" 
+                    alt="{{ product.name }}">
+            </div>
+            
+            <!-- Thumbnails -->
+            <div class="product-thumbnails d-flex flex-wrap">
+                {% if product.video %}
+                    <div class="me-2 mb-2 position-relative" style="display:inline-block;">
+                        <video class="product-thumbnail video-thumb"
+                               data-type="video"
+                               data-video-url="{{ product.video.url }}"
+                               style="width:70px;height:70px;object-fit:cover;cursor:pointer; border-radius:6px;"
+                               muted
+                               preload="metadata">
+                            <source src="{{ product.video.url }}" type="{{ product.video_type }}">
+                        </video>
+                        <span class="video-play-overlay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;">
+                            <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="24" cy="24" r="24" fill="rgba(0,0,0,0.45)"/>
+                                <polygon points="19,15 36,24 19,33" fill="#fff"/>
+                            </svg>
+                        </span>
+                    </div>
+                {% endif %}
+                {% for image in product.images.all %}
+                    <div class="me-2 mb-2">
+                        <img src="{{ image.image.url }}" class="product-thumbnail image-thumb" data-type="image" data-image-url="{{ image.image.url }}" style="width:70px;height:70px;object-fit:cover;cursor:pointer;" alt="{{ product.name }} - Image {{ forloop.counter }}">
+                    </div>
+                {% endfor %}
+            </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const mainImage = document.getElementById('main-product-image');
+                const mainVideo = document.getElementById('main-product-video');
+                const thumbnails = document.querySelectorAll('.product-thumbnail');
+
+                thumbnails.forEach(function(thumb) {
+                    thumb.addEventListener('click', function() {
+                        thumbnails.forEach(t => t.classList.remove('active'));
+                        thumb.classList.add('active');
+
+                        const isVideo = thumb.dataset.type === 'video';
+
+                        if (mainVideo) mainVideo.style.display = isVideo ? 'block' : 'none';
+                        if (mainImage) mainImage.style.display = isVideo ? 'none' : 'block';
+
+                        if (isVideo) {
+                            if(mainVideo) {
+                                mainVideo.load();
+                                mainVideo.play();
+                            }
+                        } else {
+                            if(mainVideo) mainVideo.pause();
+                            if(mainImage) {
+                                // Always use the thumbnail's data-image-url, fallback to placeholder
+                                let newSrc = thumb.dataset.imageUrl;
+                                if (!newSrc) {
+                                    newSrc = "{% static 'img/no-image.jpg' %}";
+                                }
+                                mainImage.style.display = 'none'; // force reflow
+                                mainImage.src = '';
+                                setTimeout(function() {
+                                    mainImage.src = newSrc;
+                                    mainImage.style.display = 'block';
+                                }, 10);
+                            }
+                        }
+                    });
+                });
+
+                // Initial state: show image if there are images, otherwise show video
+                let imageThumb = document.querySelector('.product-thumbnail[data-type="image"]');
+                let videoThumb = document.querySelector('.product-thumbnail[data-type="video"]');
+                if (imageThumb) {
+                    imageThumb.classList.add('active');
+                    if(mainImage) mainImage.style.display = 'block';
+                    if(mainVideo) mainVideo.style.display = 'none';
+                    mainImage.src = imageThumb.dataset.imageUrl;
+                } else if (videoThumb) {
+                    videoThumb.classList.add('active');
+                    if(mainVideo) mainVideo.style.display = 'block';
+                    if(mainImage) mainImage.style.display = 'none';
+                }
+            });
+            </script>
+        </div>
+        
+        <!-- Product Info -->
+        <div class="col-md-6">
+            <h1 class="mb-3">{{ product.name }}</h1>
+            
+            <!-- Artist Info -->
+            <div class="mb-3">
+                <a href="{% url 'artists:artist_detail' product.artist.pk %}" class="text-decoration-none">
+                    <span class="text-muted">{% trans "By" %} {{ product.artist.name }}</span>
+                </a>
+            </div>
+            
+            <!-- Price -->
+            <div class="mb-4">
+                {% if product.discount_price %}
+                    <span class="text-muted text-decoration-line-through fs-4">{{ product.price }} DA</span>
+                    <span class="text-danger fs-3 ms-2">{{ product.discount_price }} DA</span>
+                    <span class="badge bg-danger ms-2">-{{ product.get_discount_percentage }}%</span>
+                {% else %}
+                    <span class="fs-3">{{ product.price }} DA</span>
+                {% endif %}
+            </div>
+            
+            <!-- Availability -->
+            <div class="mb-4">
+                {% if product.stock > 0 %}
+                    <span class="badge bg-success">{% trans "In Stock" %}</span>
+                {% else %}
+                    <span class="badge bg-danger">{% trans "Out of Stock" %}</span>
+                {% endif %}
+            </div>
+            
+            <!-- Add to Cart Form -->
+            {% if product.stock > 0 %}
+                {% if user.is_authenticated and user.role == 'artist' and user.artist_profile == product.artist %}
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i> {% trans "As the artist of this product, you cannot add it to your own cart." %}
+                    </div>
+                {% else %}
+                    <form method="post" action="{% url 'cart:cart_add' product.id %}" class="mb-4 add-to-cart-form">
+                        {% csrf_token %}
+                        <div class="d-flex align-items-center">
+                            <div class="input-group me-3" style="width: 130px;">
+                                <button class="btn btn-outline-secondary" type="button">-</button>
+                                <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="form-control text-center quantity-input">
+                                <button class="btn btn-outline-secondary" type="button">+</button>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-shopping-cart me-2"></i> {% trans "Add to Cart" %}
+                            </button>
+                        </div>
+                    </form>
+                {% endif %}
+            {% endif %}
+            
+            <!-- Description -->
+            <div class="mb-4">
+                <h5>{% trans "Description" %}</h5>
+                <p>{{ product.description|linebreaks }}</p>
+            </div>
+            
+            <!-- Product Details -->
+            <div class="mb-4">
+                <h5>{% trans "Product Details" %}</h5>
+                <ul class="list-unstyled">
+                    {% if product.craft_category %}
+                        <li><strong>{% trans "Craft Type" %}:</strong> {{ craft_category_name }}</li>
+                    {% endif %}
+                    <li><strong>{% trans "Artisan" %}:</strong> {{ product.artist.name }}</li>
+                    {% if product.stock > 0 %}
+                        <li><strong>{% trans "Available" %}:</strong> {% trans "Yes" %} ({{ product.stock }} {% trans "in stock" %})</li>
+                    {% else %}
+                        <li><strong>{% trans "Available" %}:</strong> {% trans "No" %}</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+        <div class="mt-5">
+            <h3 class="mb-4">{% trans "You May Also Like" %}</h3>
+            <div class="row">
+                {% for product in related_products %}
+                    <div class="col-md-3 col-sm-6 mb-4">
+                        <div class="card product-card h-100">
+                            {% if product.discount_price %}
+                                <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                            {% endif %}
+                            <a href="{% url 'products:product_detail' product.slug %}">
+                                {% if product.main_image %}
+                                    <img src="{{ product.main_image.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="{% static 'img/no-image.jpg' %}" class="card-img-top" alt="No Image">
+                                {% endif %}
+                            </a>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text text-muted">{{ product.artist.name }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if product.discount_price %}
+                                            <span class="text-muted text-decoration-line-through">{{ product.price }} DA</span>
+                                            <span class="text-danger ms-2">{{ product.discount_price }} DA</span>
+                                        {% else %}
+                                            <span>{{ product.price }} DA</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if user.is_authenticated and user.role == 'artist' and user.artist_profile == product.artist %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="{% trans 'You cannot add your own products to your cart' %}">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </button>
+                                    {% else %}
+                                        <form method="post" action="{% url 'cart:cart_add' product.id %}" class="add-to-cart-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+#main-media-container {
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 1/1;
+    margin: 0 auto 1rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #faf7f2;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+#main-media-container img,
+#main-media-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #faf7f2;
+    border-radius: 10px;
+}
+.product-thumbnails {
+    margin-top: 1rem;
+}
+.product-thumbnail.active {
+    outline: 2px solid #a67c52;
+    border-radius: 6px;
+}
+</style>
+{% endblock %}

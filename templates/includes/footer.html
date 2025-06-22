@@ -1,0 +1,54 @@
+{% load i18n %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <h5 class="mb-4">Crafty</h5>
+            <p>{% trans "Your marketplace for unique handcrafted products made by talented artists from around the country." %}</p>
+            <div class="mt-4 social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-pinterest"></i></a>
+            </div>
+        </div>
+        <div class="col-md-2 mb-4">
+            <h5 class="mb-4">{% trans "Shop" %}</h5>
+            <ul class="list-unstyled">
+                <li class="mb-2"><a href="{% url 'products:product_list' %}">{% trans "Home" %}</a></li>
+                <li class="mb-2"><a href="{% url 'categories:category_list' %}">{% trans "Categories" %}</a></li>
+                <li class="mb-2"><a href="{% url 'artists:artist_list' %}">{% trans "Artists" %}</a></li>
+                <li class="mb-2"><a href="{% url 'products:product_search' %}">{% trans "Search" %}</a></li>
+            </ul>
+        </div>
+        <div class="col-md-2 mb-4">
+            <h5 class="mb-4">{% trans "Account" %}</h5>
+            <ul class="list-unstyled">
+                {% if user.is_authenticated %}
+                    {% if user.role == 'artist' %}
+                        <li class="mb-2"><a href="{% url 'artists:artist_dashboard' %}">{% trans "Artist Dashboard" %}</a></li>
+                    {% endif %}
+                    <li class="mb-2"><a href="{% url 'users:profile' %}">{% trans "My Profile" %}</a></li>
+                    <li class="mb-2"><a href="{% url 'orders:order_history' %}">{% trans "My Orders" %}</a></li>
+                    <li class="mb-2"><a href="{% url 'account_logout' %}">{% trans "Logout" %}</a></li>
+                {% else %}
+                    <li class="mb-2"><a href="{% url 'account_login' %}">{% trans "Login" %}</a></li>
+                    <li class="mb-2"><a href="{% url 'users:register' %}">{% trans "Register" %}</a></li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="col-md-4 mb-4">
+            <h5 class="mb-4">{% trans "Contact Us" %}</h5>
+            <ul class="list-unstyled">
+                <li class="mb-3"><i class="fas fa-map-marker-alt me-2"></i> {% trans "123 Artisan Street, Algiers, Algeria" %}</li>
+                <li class="mb-3"><i class="fas fa-phone me-2"></i> +213 123 456 789</li>
+                <li class="mb-3"><i class="fas fa-envelope me-2"></i> info@crafty.com</li>
+            </ul>
+        </div>
+    </div>
+    <hr class="my-4" style="background-color: var(--border-color); opacity: 0.2;">
+    <div class="row mt-3">
+        <div class="col-12 text-center">
+            <p class="mb-0">© {% now "Y" %} Crafty. {% trans "All rights reserved." %}</p>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">{% trans "Shopping Cart" %}</h1>
+    
+    {% if cart.items.exists %}
+        <div class="row">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="card mb-4 cart-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">{% trans "Cart Items" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table cart-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">{% trans "Product" %}</th>
+                                        <th scope="col">{% trans "Price" %}</th>
+                                        <th scope="col">{% trans "Quantity" %}</th>
+                                        <th scope="col">{% trans "Total" %}</th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in cart.items.all %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        {% if item.product.main_image %}
+                                                            <img src="{{ item.product.main_image.image.url }}" alt="{{ item.product.name }}" class="cart-product-img">
+                                                        {% else %}
+                                                            <img src="{% static 'img/no-image.jpg' %}" alt="No Image" class="cart-product-img">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div>
+                                                        <a href="{% url 'products:product_detail' item.product.slug %}" class="text-decoration-none">
+                                                            <h6 class="mb-0 cart-product-title">{{ item.product.name }}</h6>
+                                                        </a>
+                                                        <small class="text-muted">{{ item.product.artist.name }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                {% if item.product.discount_price %}
+                                                    <span class="text-danger">{{ item.product.discount_price }} DA</span>
+                                                {% else %}
+                                                    <span>{{ item.product.price }} DA</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="input-group" style="width: 120px;">
+                                                        <button class="cart-quantity-btn decrement-btn" type="button" onclick="decrementQuantity('{{ item.product.id }}');">-</button>
+                                                        <input type="number" id="quantity-{{ item.product.id }}" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" class="cart-quantity-input" readonly>
+                                                        <button class="cart-quantity-btn increment-btn" type="button" onclick="incrementQuantity('{{ item.product.id }}');">+</button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong>{{ item.get_cost }} DA</strong>
+                                            </td>
+                                            <td>
+                                                <form method="post" action="{% url 'cart:cart_remove' item.product.id %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="cart-remove-btn">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card cart-summary-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">{% trans "Order Summary" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="cart-summary-item">
+                            <span>{% trans "Items" %} ({{ cart.get_total_quantity }})</span>
+                            <span>{{ cart.get_total_cost }} DA</span>
+                        </div>
+                        <div class="cart-summary-item">
+                            <span>{% trans "Shipping" %}</span>
+                            <span>{% trans "Free" %}</span>
+                        </div>
+                        <div class="cart-summary-item">
+                            <span class="cart-summary-total">{% trans "Total" %}</span>
+                            <span class="cart-summary-total">{{ cart.get_total_cost }} DA</span>
+                        </div>
+                        <a href="{% url 'orders:order_create' %}" class="btn cart-checkout-btn">
+                            {% trans "Proceed to Checkout" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-cart-container">
+            <i class="fas fa-shopping-cart empty-cart-icon"></i>
+            <h3 class="empty-cart-title">{% trans "Your cart is empty" %}</h3>
+            <p class="empty-cart-text">{% trans "Looks like you haven't added any products to your cart yet." %}</p>
+            <a href="{% url 'products:product_list' %}" class="btn continue-shopping-btn">
+                <i class="fas fa-arrow-left me-2"></i> {% trans "Continue Shopping" %}
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+    
+    // Function to increment quantity - adds a new item to cart
+    function incrementQuantity(productId, price, maxStock) {
+        // Send add request to server
+        addToCart(productId, 1);
+    }
+    
+    // Function to decrement quantity - reduces quantity by 1
+    function decrementQuantity(productId, price, maxStock) {
+        const inputField = document.getElementById('quantity-' + productId);
+        const currentValue = parseInt(inputField.value);
+        
+        if (currentValue > 1) {
+            // Reduce quantity by 1
+            const newValue = currentValue - 1;
+            updateCartItem(productId, newValue);
+        } else {
+            // If quantity is 1, remove the item
+            removeFromCart(productId);
+        }
+    }
+    
+    // Function to add item to cart
+    function addToCart(productId, quantity) {
+        // Create form data
+        const formData = new FormData();
+        formData.append('quantity', quantity);
+        
+        // Create AJAX request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/cart/add/' + productId + '/', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-CSRFToken', csrftoken);
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                // Reload the page to show updated cart
+                window.location.reload();
+            }
+        };
+        
+        xhr.send(formData);
+    }
+    
+    // Function to remove item from cart
+    function removeFromCart(productId) {
+        // Create AJAX request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/cart/remove/' + productId + '/', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-CSRFToken', csrftoken);
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                // Reload the page to show updated cart
+                window.location.reload();
+            }
+        };
+        
+        // Create form data with CSRF token
+        const formData = new FormData();
+        xhr.send(formData);
+    }
+    
+    // Function to update cart totals
+    function updateCartTotals() {
+        let totalItems = 0;
+        let totalCost = 0;
+        
+        // Calculate totals from all items in cart
+        document.querySelectorAll('input[id^="quantity-"]').forEach(function(input) {
+            const quantity = parseInt(input.value);
+            const row = input.closest('tr');
+            const priceText = row.querySelector('td:nth-child(2)').textContent.trim();
+            const price = parseFloat(priceText.replace(' DA', ''));
+            
+            totalItems += quantity;
+            totalCost += price * quantity;
+        });
+        
+        // Update cart summary
+        document.querySelector('.card-body .d-flex:nth-child(1) span:last-child').textContent = totalCost.toFixed(2) + ' DA';
+        document.querySelector('.card-body .d-flex:nth-child(1) span:first-child').textContent = '{% trans "Items" %} (' + totalItems + ')';
+        document.querySelector('.card-body .d-flex:nth-child(3) strong:last-child').textContent = totalCost.toFixed(2) + ' DA';
+    }
+    
+    // Function to update cart item quantity
+    function updateCartItem(productId, quantity) {
+        // Create form data
+        const formData = new FormData();
+        formData.append('quantity', quantity);
+        
+        // Create AJAX request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/cart/update/' + productId + '/', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-CSRFToken', csrftoken);
+        
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                // Reload the page to show updated cart
+                window.location.reload();
+            }
+        };
+        
+        xhr.send(formData);
+    }
+    
+    // Function to update server without page reload
+    function updateServer(productId, quantity) {
+        // Create form data
+        const formData = new FormData();
+        formData.append('quantity', quantity);
+        
+        // Create AJAX request
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/cart/update/' + productId + '/', true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-CSRFToken', csrftoken);
+        xhr.send(formData);
+    }
+</script>
+{% endblock %}

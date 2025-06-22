@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">{% trans "Search Results" %}</h1>
+    
+    <!-- Search Form -->
+    <div class="row mb-4">
+        <div class="col-md-8 mx-auto">
+            <form action="{% url 'products:product_search' %}" method="GET" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="{% trans 'Search products...' %}" value="{{ query }}">
+                <select name="craft_category" class="form-select me-2" style="max-width: 200px;">
+                    <option value="">{% trans "All Craft Types" %}</option>
+                    {% for craft_id, craft_name in craft_categories %}
+                        <option value="{{ craft_id }}" {% if selected_craft_category == craft_id %}selected{% endif %}>
+                            {{ craft_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">{% trans "Search" %}</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Results -->
+    <div class="row">
+        {% if page_obj %}
+            {% for product in page_obj %}
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card product-card h-100">
+                        {% if product.discount_price %}
+                            <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                        {% endif %}
+                        <a href="{% url 'products:product_detail' product.slug %}">
+                            {% if product.main_image %}
+                                <img src="{{ product.main_image.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="{% static 'img/no-image.jpg' %}" class="card-img-top" alt="No Image">
+                            {% endif %}
+                        </a>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text text-muted">{{ product.artist.name }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if product.discount_price %}
+                                        <span class="text-muted text-decoration-line-through">{{ product.price }} DA</span>
+                                        <span class="text-danger ms-2">{{ product.discount_price }} DA</span>
+                                    {% else %}
+                                        <span>{{ product.price }} DA</span>
+                                    {% endif %}
+                                </div>
+                                <form method="post" action="{% url 'cart:cart_add' product.id %}" class="add-to-cart-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center">
+                <p>{% trans "No products found matching your search criteria." %}</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query }}&craft_category={{ selected_craft_category }}&page=1">{% trans "First" %}</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query }}&craft_category={{ selected_craft_category }}&page={{ page_obj.previous_page_number }}">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">{% trans "First" %}</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <li class="page-item active">
+                            <a class="page-link" href="?q={{ query }}&craft_category={{ selected_craft_category }}&page={{ i }}">{{ i }}</a>
+                        </li>
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query }}&craft_category={{ selected_craft_category }}&page={{ i }}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query }}&craft_category={{ selected_craft_category }}&page={{ page_obj.next_page_number }}">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?q={{ query }}&craft_category={{ selected_craft_category }}&page={{ page_obj.paginator.num_pages }}">
+                            {% trans "Last" %}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">{% trans "Last" %}</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

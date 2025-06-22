@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">{% trans "Home" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'artists:artist_list' %}">{% trans "Artists" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ artist.name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row mb-5">
+        <!-- Artist Info -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if artist.user.profile_picture %}
+                        <img src="{{ artist.user.profile_picture.url }}" class="rounded-circle img-fluid mb-3" style="max-width: 200px;" alt="{{ artist.name }}">
+                    {% else %}
+                        <img src="{% static 'img/no-profile.jpg' %}" class="rounded-circle img-fluid mb-3" style="max-width: 200px;" alt="No Image">
+                    {% endif %}
+                    <h3>{{ artist.name }}</h3>
+                    
+                    {% if artist.availability %}
+                        <span class="badge bg-success mb-3">{% trans "Available for commissions" %}</span>
+                    {% else %}
+                        <span class="badge bg-secondary mb-3">{% trans "Not available" %}</span>
+                    {% endif %}
+                    
+                    {% if artist.bio %}
+                        <p class="text-muted">{{ artist.bio }}</p>
+                    {% endif %}
+                    
+                    {% if artist.user.role == 'artist' and artist.user.delivery_agency %}
+                        <div class="mb-3">
+                            <strong>{% trans "Delivery Agency" %}:</strong> {{ artist.user.delivery_agency }}
+                        </div>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    {% if artist.website or artist.phone %}
+                        <div class="text-start">
+                            <h6>{% trans "Contact Information" %}</h6>
+                            <ul class="list-unstyled">
+                                {% if artist.website %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-globe me-2"></i>
+                                        <a href="{{ artist.website }}" target="_blank" rel="noopener noreferrer">{{ artist.website }}</a>
+                                    </li>
+                                {% endif %}
+                                {% if artist.phone %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-phone me-2"></i>
+                                        {{ artist.phone }}
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Artist Products -->
+        <div class="col-md-8">
+            <h3 class="mb-4">{% trans "Products by" %} {{ artist.name }}</h3>
+            
+            {% if page_obj %}
+                <div class="row">
+                    {% for product in page_obj %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card product-card h-100">
+                                {% if product.discount_price %}
+                                    <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                                {% endif %}
+                                <a href="{% url 'products:product_detail' product.slug %}">
+                                    {% if product.main_image %}
+                                        <img src="{{ product.main_image.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                    {% else %}
+                                        <img src="{% static 'img/no-image.jpg' %}" class="card-img-top" alt="No Image">
+                                    {% endif %}
+                                </a>
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ product.name }}</h5>
+                                    <p class="card-text text-muted">{{ product.category.name }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            {% if product.discount_price %}
+                                                <span class="text-muted text-decoration-line-through">{{ product.price }} DA</span>
+                                                <span class="text-danger ms-2">{{ product.discount_price }} DA</span>
+                                            {% else %}
+                                                <span>{{ product.price }} DA</span>
+                                            {% endif %}
+                                        </div>
+                                        <form method="post" action="{% url 'cart:cart_add' product.id %}" class="add-to-cart-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-shopping-cart"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">{% trans "First" %}</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">{% trans "First" %}</a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for i in page_obj.paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="page-item active">
+                                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                    </li>
+                                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                        {% trans "Last" %}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">{% trans "Last" %}</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-box-open fa-4x mb-3 text-muted"></i>
+                    <h3>{% trans "No products found" %}</h3>
+                    <p class="text-muted">{% trans "This artist hasn't added any products yet." %}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

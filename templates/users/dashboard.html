@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4">{% trans "My Dashboard" %}</h2>
+    
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Navigation" %}</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'users:dashboard' %}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-tachometer-alt me-2"></i> {% trans "Dashboard" %}
+                    </a>
+                    <a href="{% url 'users:profile' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user me-2"></i> {% trans "My Profile" %}
+                    </a>
+                    <a href="{% url 'orders:order_history' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shopping-bag me-2"></i> {% trans "My Orders" %}
+                    </a>
+                    {% if user.role == 'artist' %}
+                        <a href="{% url 'artists:artist_dashboard' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-palette me-2"></i> {% trans "Artist Dashboard" %}
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'account_logout' %}" class="list-group-item list-group-item-action text-danger">
+                        <i class="fas fa-sign-out-alt me-2"></i> {% trans "Logout" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-primary text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{% trans "Orders" %}</h6>
+                                    <h2 class="mb-0 mt-2">{{ orders_count }}</h2>
+                                </div>
+                                <i class="fas fa-shopping-bag fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between bg-primary-dark">
+                            <a href="{% url 'orders:order_history' %}" class="text-white text-decoration-none">
+                                {% trans "View Details" %}
+                            </a>
+                            <i class="fas fa-arrow-right text-white"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-success text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{% trans "Wishlist" %}</h6>
+                                    <h2 class="mb-0 mt-2">{{ wishlist_count }}</h2>
+                                </div>
+                                <i class="fas fa-heart fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between bg-success-dark">
+                            <a href="#" class="text-white text-decoration-none">
+                                {% trans "View Details" %}
+                            </a>
+                            <i class="fas fa-arrow-right text-white"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-info text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">{% trans "Reviews" %}</h6>
+                                    <h2 class="mb-0 mt-2">{{ reviews_count }}</h2>
+                                </div>
+                                <i class="fas fa-star fa-2x"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between bg-info-dark">
+                            <a href="#" class="text-white text-decoration-none">
+                                {% trans "View Details" %}
+                            </a>
+                            <i class="fas fa-arrow-right text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Orders -->
+            <div class="card mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Recent Orders" %}</h5>
+                    <a href="{% url 'orders:order_history' %}" class="btn btn-sm btn-outline-primary">
+                        {% trans "View All" %}
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Order ID" %}</th>
+                                        <th>{% trans "Date" %}</th>
+                                        <th>{% trans "Status" %}</th>
+                                        <th>{% trans "Total" %}</th>
+                                        <th>{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                        <tr>
+                                            <td>#{{ order.id }}</td>
+                                            <td>{{ order.created_at|date:"F j, Y" }}</td>
+                                            <td>
+                                                <span class="badge {% if order.status == 'delivered' %}bg-success{% elif order.status == 'cancelled' %}bg-danger{% else %}bg-primary{% endif %}">
+                                                    {{ order.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ order.get_total_cost }} DA</td>
+                                            <td>
+                                                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                                    {% trans "View" %}
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-4x mb-3 text-muted"></i>
+                            <h3>{% trans "No orders yet" %}</h3>
+                            <p class="text-muted">{% trans "You haven't placed any orders yet." %}</p>
+                            <a href="{% url 'products:product_list' %}" class="btn btn-primary mt-3">
+                                {% trans "Start Shopping" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Recently Viewed Products -->
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">{% trans "Recently Viewed Products" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if recently_viewed_products %}
+                        <div class="row">
+                            {% for product in recently_viewed_products %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100 product-card">
+                                        <a href="{% url 'products:product_detail' product.slug %}">
+                                            {% if product.get_primary_picture %}
+                                                <img src="{{ product.get_primary_picture.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                            {% else %}
+                                                <img src="{% static 'img/no-image.jpg' %}" class="card-img-top" alt="No Image">
+                                            {% endif %}
+                                        </a>
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <a href="{% url 'products:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                                                    {{ product.name }}
+                                                </a>
+                                            </h6>
+                                            <p class="card-text text-primary fw-bold">{{ product.price }} DA</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-eye-slash fa-4x mb-3 text-muted"></i>
+                            <h3>{% trans "No products viewed yet" %}</h3>
+                            <p class="text-muted">{% trans "You haven't viewed any products yet." %}</p>
+                            <a href="{% url 'products:product_list' %}" class="btn btn-primary mt-3">
+                                {% trans "Browse Products" %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'categories:craft_category_list' %}">{% trans "Craft Categories" %}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ craft_name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">{{ craft_name }}</h1>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            {% if craft_id == 'traditional' %}
+                                <img src="https://plus.unsplash.com/premium_photo-1661680098318-b4602d66ff47?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% elif craft_id == 'clothing' %}
+                                <img src="https://i.pinimg.com/736x/7f/76/d8/7f76d8b6442a30d777fce4cbc760188c.jpg" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% elif craft_id == 'accessories' %}
+                                <img src="https://i.pinimg.com/736x/32/cc/e7/32cce79e215a0cb3d423e5ce99154a7b.jpg" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% elif craft_id == 'jewelry' %}
+                                <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% elif craft_id == 'home-decor' %}
+                                <img src="https://images.unsplash.com/photo-1616046229478-9901c5536a45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% elif craft_id == 'crockery' %}
+                                <img src="https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1169&q=80" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% elif craft_id == 'toys-games' %}
+                                <img src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% elif craft_id == 'art-painting' %}
+                                <img src="https://i.pinimg.com/736x/21/52/05/215205fa5fedbcbb0d0cdfe2f09a76f4.jpg" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% elif craft_id == 'gift-ideas' %}
+                                <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% else %}
+                                <img src="{% static 'img/crafts/'|add:craft_id|add:'.jpg' %}" class="img-fluid rounded" alt="{{ craft_name }}">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h3>{% trans "About this craft" %}</h3>
+                            <p class="text-muted">
+                                {% trans "Browse our collection of handcrafted" %} {{ craft_name }} {% trans "items made by talented Algerian artisans." %}
+                            </p>
+                            <div class="mt-4">
+                                <h5>{% trans "Available Products" %}: {{ products.count }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h3 class="mb-4">{% trans "Products" %}</h3>
+    
+    <div class="row">
+        {% for product in page_obj %}
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card h-100 product-card">
+                    {% if product.main_image %}
+                        <img src="{{ product.main_image.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="{% static 'img/no-product.jpg' %}" class="card-img-top" alt="No Image">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text text-muted">{{ product.description|truncatechars:80 }}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                {% if product.discount_price %}
+                                    <span class="text-decoration-line-through text-muted me-2">{{ product.price }} DA</span>
+                                    <span class="fw-bold text-danger">{{ product.discount_price }} DA</span>
+                                {% else %}
+                                    <span class="fw-bold">{{ product.price }} DA</span>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'products:product_detail' product.slug %}" class="btn btn-sm btn-outline-primary">
+                                {% trans "View Details" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-box-open fa-4x mb-3 text-muted"></i>
+                <h3>{% trans "No products found" %}</h3>
+                <p class="text-muted">{% trans "There are no products available in this category at the moment." %}</p>
+            </div>
+        {% endfor %}
+    </div>
+    
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

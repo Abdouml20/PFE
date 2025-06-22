@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .category-header {
+        background-color: var(--light-bg);
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+        background-image: url('https://images.unsplash.com/photo-1621112904887-419379ce6824?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    
+    .category-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to right, rgba(139, 93, 43, 0.85), rgba(61, 122, 116, 0.85));
+    }
+    
+    .category-header-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+    }
+    
+    .category-header h1 {
+        font-size: 3rem;
+        color: white;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .category-header p {
+        font-size: 1.2rem;
+        max-width: 700px;
+        margin: 0 auto 1.5rem;
+    }
+    
+    .category-card {
+        border: none;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        transition: all var(--transition-speed) ease;
+        box-shadow: var(--shadow-sm);
+        height: 100%;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .category-img-wrapper {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .category-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .category-card:hover .category-img {
+        transform: scale(1.05);
+    }
+    
+    .category-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+        display: flex;
+        align-items: flex-end;
+        padding: 1.5rem;
+    }
+    
+    .category-name {
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        margin: 0;
+    }
+    
+    .category-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 3;
+    }
+    
+    .category-content {
+        padding: 1.5rem;
+    }
+    
+    .category-description {
+        color: var(--dark-text);
+        margin-bottom: 1.5rem;
+    }
+    
+    .category-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .view-link {
+        color: var(--secondary-color);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    
+    .view-link i {
+        margin-left: 0.5rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .category-card:hover .view-link i {
+        transform: translateX(5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Category Header -->
+<div class="category-header">
+    <div class="container">
+        <div class="category-header-content">
+            <h1>{% trans "Browse Our Categories" %}</h1>
+            <p>{% trans "Discover a wide range of handcrafted products organized by categories. Each category offers unique artisanal treasures created with passion and tradition." %}</p>
+            {% if user.is_authenticated and user.role == 'artist' %}
+            <a href="{% url 'categories:add_category' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-plus me-2"></i> {% trans "Add Category" %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row">
+        {% for category in categories %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="category-card">
+                    <a href="{% url 'categories:category_detail' category.slug %}" class="text-decoration-none">
+                        <div class="category-img-wrapper">
+                            {% if category.image %}
+                                <img src="{{ category.image.url }}" class="category-img" alt="{{ category.name }}">
+                            {% else %}
+                                <!-- Assign a different background image based on category name -->
+                                {% if 'clothing' in category.name|lower %}
+                                    <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" class="category-img" alt="{{ category.name }}">
+                                {% elif 'jewelry' in category.name|lower %}
+                                    <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" class="category-img" alt="{{ category.name }}">
+                                {% elif 'home' in category.name|lower or 'decor' in category.name|lower %}
+                                    <img src="https://images.unsplash.com/photo-1616046229478-9901c5536a45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80" class="category-img" alt="{{ category.name }}">
+                                {% elif 'pottery' in category.name|lower or 'ceramic' in category.name|lower or 'crockery' in category.name|lower %}
+                                    <img src="https://images.unsplash.com/photo-1493106641515-6b5631de4bb9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1169&q=80" class="category-img" alt="{{ category.name }}">
+                                {% elif 'art' in category.name|lower or 'paint' in category.name|lower %}
+                                    <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1145&q=80" class="category-img" alt="{{ category.name }}">
+                                {% elif 'toy' in category.name|lower or 'game' in category.name|lower %}
+                                    <img src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" class="category-img" alt="{{ category.name }}">
+                                {% elif 'gift' in category.name|lower %}
+                                    <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1160&q=80" class="category-img" alt="{{ category.name }}">
+                                {% elif 'accessory' in category.name|lower or 'accessories' in category.name|lower %}
+                                    <img src="https://images.unsplash.com/photo-1601924582970-9238bcb495d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1176&q=80" class="category-img" alt="{{ category.name }}">
+                                {% elif 'traditional' in category.name|lower %}
+                                    <img src="https://plus.unsplash.com/premium_photo-1661680098318-b4602d66ff47?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" class="category-img" alt="{{ category.name }}">
+                                {% else %}
+                                    <img src="https://images.unsplash.com/photo-1621112904887-419379ce6824?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1169&q=80" class="category-img" alt="{{ category.name }}">
+                                {% endif %}
+                            {% endif %}
+                            <div class="category-overlay">
+                                <h3 class="category-name">{{ category.name }}</h3>
+                            </div>
+                            <span class="badge bg-primary category-badge">{{ category.products.count }} {% trans "products" %}</span>
+                        </div>
+                    </a>
+                    <div class="category-content">
+                        {% if category.description %}
+                            <p class="category-description">{{ category.description|truncatechars:100 }}</p>
+                        {% endif %}
+                        <div class="category-footer">
+                            <a href="{% url 'categories:category_detail' category.slug %}" class="view-link">
+                                {% trans "View Category" %} <i class="fas fa-arrow-right"></i>
+                            </a>
+                            
+                            {% if user.is_authenticated and user.role == 'artist' %}
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'categories:edit_category' category.pk %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'categories:delete_category' category.pk %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-tags fa-4x mb-3 text-muted"></i>
+                <h3>{% trans "No categories found" %}</h3>
+                <p class="text-muted">{% trans "There are no categories available at the moment." %}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
