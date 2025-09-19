@@ -91,3 +91,4 @@ The application is configured for easy deployment to platforms like Heroku or Py
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+# Force redeploy - Fri Sep 19 09:05:46 PM CET 2025
