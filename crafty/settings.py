@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-wt^h&g-)#yryqn4-#5=h_-8@+e)36lipjo0*)t_3(4jwrw@g*c'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['abdouml20.pythonanywhere.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'abdouml20.pythonanywhere.com,127.0.0.1,localhost').split(',')
 
 
 # Application definition

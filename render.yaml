@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: crafty-django
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn crafty.wsgi
+    envVars:
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: your-app-name.onrender.com
