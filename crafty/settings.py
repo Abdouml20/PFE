@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'allauth',
     'allauth.account',
+    'cloudinary',
+    'cloudinary_storage',
     
     # Local apps
     'users.apps.UsersConfig',
@@ -155,6 +157,20 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary media storage (enabled if CLOUDINARY_URL is set)
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
+if CLOUDINARY_URL:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    # Optional: organize uploads under a folder
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': None,  # read from CLOUDINARY_URL
+        'API_KEY': None,     # read from CLOUDINARY_URL
+        'API_SECRET': None,  # read from CLOUDINARY_URL
+        'SECURE': True,
+        'STATIC_IMAGES_EXTENSIONS': ['png', 'jpg', 'jpeg', 'gif', 'webp'],
+        'RAW_EXTENSIONS': ['mp4', 'mov', 'avi', 'mkv'],
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
