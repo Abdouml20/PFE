@@ -1,6 +1,6 @@
 /* Crafty Theme - Artisanal E-commerce Theme */
 
-:root {
+ :root {
   /* Logo-inspired color palette */
   --primary-color: #8b5d2b;      /* Brown from logo */
   --secondary-color: #3d7a74;    /* Teal from logo */
@@ -1695,6 +1695,48 @@ footer .mb-3 {
   background-color: #5A9E94;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Quantity controls – ensure theme wins over Bootstrap input-group defaults */
+.input-group .cart-quantity-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #3D271A;
+  transition: all 0.2s ease;
+}
+
+.input-group .cart-quantity-btn:hover {
+  background-color: #3D271A;
+  color: #fff;
+  border-color: #3D271A;
+}
+
+.input-group .cart-quantity-input {
+  width: 60px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-left: none;
+  border-right: none;
+  padding: 5px;
+  height: 32px;
+}
+
+/* Hide number input spinners for a cleaner look */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 .quantity-control {
