@@ -28,6 +28,21 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'abdouml20.pythonanywhere.com,127.0.0.1,localhost').split(',')
 
+# CSRF trusted origins: include https origins that match allowed hosts or explicit env
+_csrf_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if _csrf_env:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_env.split(',') if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{host.strip()}"
+        for host in ALLOWED_HOSTS
+        if host.strip() and host.strip() not in ('127.0.0.1', 'localhost')
+    ]
+    # Common PaaS wildcard (Railway)
+    CSRF_TRUSTED_ORIGINS += [
+        'https://*.up.railway.app'
+    ]
+
 
 # Application definition
 
@@ -62,6 +77,7 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.http.ConditionalGetMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',  # For multi-language support
     'django.middleware.common.CommonMiddleware',
@@ -93,6 +109,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'crafty.wsgi.application'
+
+# Honor X-Forwarded-Proto/Host from Railway/Render
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Database
