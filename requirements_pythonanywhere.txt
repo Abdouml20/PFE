@@ -1,0 +1,17 @@
+# PythonAnywhere deployment requirements
+# Remove psycopg2-binary for PythonAnywhere (they provide MySQL)
+asgiref==3.10.0
+crispy-bootstrap4==2025.6
+Django==5.2.7
+django-allauth==65.12.0
+django-crispy-forms==2.4
+django-filter==25.2
+django-widget-tweaks==1.5.0
+# dj-database-url==2.2.0  # Not needed for PythonAnywhere
+# psycopg2-binary==2.9.10  # Not needed for PythonAnywhere
+pillow==11.3.0
+python-gettext==5.0
+sqlparse==0.5.3
+# gunicorn==23.0.0  # Not needed for PythonAnywhere
+whitenoise==6.11.0
+mysqlclient==2.2.4  # For PythonAnywhere MySQL database
