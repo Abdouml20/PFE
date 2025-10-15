@@ -230,10 +230,19 @@ ACCOUNT_FORMS = {
 }
 
 # Production static file settings
+# Use WhiteNoise to serve static files in all environments
+# Ensure WhiteNoise middleware is directly after SecurityMiddleware
+if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+# Enable compressed and hashed static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# In development, allow WhiteNoise to use finders so collectstatic isn't required
+WHITENOISE_USE_FINDERS = DEBUG
+
+# Security settings for production
 if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-    
-    # Security settings for production
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
