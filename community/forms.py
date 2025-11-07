@@ -10,7 +10,7 @@ class PostForm(forms.ModelForm):
     """Form for creating and editing posts"""
     class Meta:
         model = Post
-        fields = ['title', 'content', 'post_type', 'tags', 'related_product', 'is_public']
+        fields = ['title', 'content', 'post_type', 'tags', 'related_product', 'is_public', 'video']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -28,6 +28,10 @@ class PostForm(forms.ModelForm):
             }),
             'related_product': forms.Select(attrs={'class': 'form-control'}),
             'is_public': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'video': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'video/*'
+            }),
         }
         labels = {
             'title': _('Title'),
@@ -36,6 +40,7 @@ class PostForm(forms.ModelForm):
             'tags': _('Tags'),
             'related_product': _('Related Product (Optional)'),
             'is_public': _('Make this post public'),
+            'video': _('Video (Optional)'),
         }
 
 class PostImageForm(forms.ModelForm):

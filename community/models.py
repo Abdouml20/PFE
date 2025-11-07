@@ -37,6 +37,9 @@ class Post(models.Model):
     # Link to product if this post is about a specific product
     related_product = models.ForeignKey('products.Product', on_delete=models.SET_NULL, null=True, blank=True, related_name='posts')
     
+    # Video field for posts
+    video = models.FileField(_('video'), upload_to='community/posts/videos', blank=True, null=True)
+    
     class Meta:
         verbose_name = _('post')
         verbose_name_plural = _('posts')
@@ -144,7 +147,8 @@ class Message(models.Model):
     """Direct messages between users"""
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages')
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='received_messages')
-    content = models.TextField(_('content'))
+    content = models.TextField(_('content'), blank=True)
+    shared_post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True, related_name='shared_messages', help_text=_('Post shared in this message'))
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     is_read = models.BooleanField(_('is read'), default=False)
     read_at = models.DateTimeField(_('read at'), null=True, blank=True)
@@ -155,6 +159,8 @@ class Message(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
+        if self.shared_post:
+            return f"Post shared from {self.sender.username} to {self.recipient.username}"
         return f"Message from {self.sender.username} to {self.recipient.username}"
 
 class Conversation(models.Model):

@@ -147,7 +147,14 @@ def edit_product(request, pk):
             for obj in formset.deleted_objects:
                 obj.delete()
             messages.success(request, _('Product updated successfully!'))
-            return redirect('artists:artist_dashboard')
+            
+            # Check if user wants to create a post about this product
+            create_post = request.POST.get('create_post', 'false')
+            if create_post == 'true':
+                # Redirect to create post page with product ID
+                return redirect(f"{reverse('community:create_post')}?product={product.id}")
+            else:
+                return redirect('artists:artist_dashboard')
     else:
         form = ProductForm(instance=product)
         formset = PictureFormSet(instance=product)

@@ -39,7 +39,36 @@
                                     {{ message.sender.username }}
                                 </small>
                             </div>
+                            
+                            {% if message.shared_post %}
+                            <!-- Shared Post Preview -->
+                            <div class="shared-post-preview mb-2 p-2 {% if message.sender == user %}bg-white text-dark{% else %}bg-white{% endif %} rounded border">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-share me-2"></i>
+                                    <strong>{% trans "Shared Post" %}</strong>
+                                </div>
+                                {% if message.shared_post.images.exists %}
+                                <img src="{{ message.shared_post.images.first.image.url }}" 
+                                     class="img-fluid rounded mb-2" style="max-height: 150px; width: 100%; object-fit: cover;" alt="Post">
+                                {% elif message.shared_post.video %}
+                                <div class="mb-2">
+                                    <video class="w-100 rounded" style="max-height: 150px;" controls>
+                                        <source src="{{ message.shared_post.video.url }}" type="video/mp4">
+                                    </video>
+                                </div>
+                                {% endif %}
+                                <h6 class="mb-1">{{ message.shared_post.title }}</h6>
+                                <p class="small mb-2 text-muted">{{ message.shared_post.content|truncatewords:20 }}</p>
+                                <a href="{% url 'community:post_detail' message.shared_post.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye me-1"></i>{% trans "View Post" %}
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            {% if message.content %}
                             <p class="mb-0">{{ message.content|linebreaks }}</p>
+                            {% endif %}
+                            
                             <small class="{% if message.sender == user %}text-white-50{% else %}text-muted{% endif %} d-block mt-2">
                                 {{ message.created_at|timesince }} {% trans "ago" %}
                             </small>

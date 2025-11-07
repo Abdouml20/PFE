@@ -12,3 +12,6 @@ python-gettext==5.0
 sqlparse==0.5.3
 gunicorn==23.0.0
 whitenoise==6.11.0
+# Cloudinary for media file storage (images, videos)
+django-cloudinary-storage==0.3.0
+cloudinary==1.36.0

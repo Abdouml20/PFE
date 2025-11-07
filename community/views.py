@@ -15,7 +15,19 @@ User = get_user_model()
 def feed(request):
     """Main community homepage showing posts and featured artisans"""
     # Get all posts from all users (public community feed)
-    posts = Post.objects.all().select_related('author').prefetch_related('images', 'likes', 'comments').order_by('-created_at')
+    posts = Post.objects.all().select_related('author').prefetch_related('images', 'likes', 'comments')
+    
+    # Handle sorting
+    sort_by = request.GET.get('sort', 'recent')
+    if sort_by == 'recent':
+        posts = posts.order_by('-created_at')
+    elif sort_by == 'top' or sort_by == 'most_liked':
+        # Sort by total likes (most liked first)
+        posts = posts.annotate(
+            total_likes_count=Count('likes')
+        ).order_by('-total_likes_count', '-created_at')
+    else:
+        posts = posts.order_by('-created_at')
     
     # Add pagination
     paginator = Paginator(posts, 10)
@@ -42,6 +54,7 @@ def feed(request):
         'title': _('Community Feed'),
         'total_posts': total_posts,
         'total_users': total_users,
+        'current_sort': sort_by,
     }
     return render(request, 'community/homepage.html', context)
 
@@ -77,115 +90,76 @@ def public_homepage(request):
 def create_post(request):
     """Create a new post"""
     if request.method == 'POST':
-        post_form = PostForm(request.POST)
+        post_form = PostForm(request.POST, request.FILES)
         if post_form.is_valid():
             post = post_form.save(commit=False)
             post.author = request.user
             post.save()
             
-            # If product is selected, copy product images first
+            # Automatically copy all product images if product is selected
+            images_added = 0
+            
             if post.related_product:
                 from products.models import Picture
                 from django.core.files.base import ContentFile
-                from django.core.files.storage import default_storage
                 import os
                 import time
-                import logging
                 
-                logger = logging.getLogger(__name__)
-                product_images = Picture.objects.filter(product=post.related_product).order_by('-is_main', 'created_at')
-                images_copied = 0
+                # Get all product images
+                product_images = Picture.objects.filter(
+                    product=post.related_product
+                ).order_by('-is_main', 'created_at')
                 
-                if not product_images.exists():
-                    messages.warning(request, _('The selected product has no images to copy.'))
-                else:
-                    for i, product_image in enumerate(product_images):
-                        try:
-                            # Try to copy the image file using Django's file field
-                            if product_image.image and product_image.image.name:
-                                # Method 1: Try using the file field directly
-                                try:
-                                    # Open the source image
-                                    source_file = product_image.image
-                                    source_file.open('rb')
-                                    file_content = source_file.read()
-                                    source_file.seek(0)  # Reset file pointer
-                                    
-                                    # Generate a unique filename
-                                    original_name = os.path.basename(product_image.image.name)
-                                    name, ext = os.path.splitext(original_name)
-                                    unique_name = f"community/posts/product_{post.id}_{int(time.time())}_{i}{ext}"
-                                    
-                                    # Create ContentFile with the content
-                                    image_file = ContentFile(file_content)
-                                    image_file.name = unique_name
-                                    
-                                    # Create PostImage with the file
-                                    post_image = PostImage(
-                                        post=post,
-                                        image=image_file,
-                                        is_main=(i == 0)
-                                    )
-                                    post_image.save()  # Save explicitly to ensure file is written
-                                    source_file.close()
-                                    
-                                    images_copied += 1
-                                    logger.info(f"Successfully copied product image {product_image.id} to post {post.id}")
-                                    
-                                except Exception as e1:
-                                    logger.error(f"Method 1 failed for image {product_image.id}: {str(e1)}")
-                                    # Method 2: Try using file path
-                                    try:
-                                        if hasattr(product_image.image, 'path'):
-                                            image_path = product_image.image.path
-                                            if os.path.exists(image_path):
-                                                # Read file from disk
-                                                with open(image_path, 'rb') as f:
-                                                    file_content = f.read()
-                                                
-                                                # Generate unique filename
-                                                original_name = os.path.basename(product_image.image.name)
-                                                name, ext = os.path.splitext(original_name)
-                                                unique_name = f"community/posts/product_{post.id}_{int(time.time())}_{i}{ext}"
-                                                
-                                                # Create ContentFile
-                                                image_file = ContentFile(file_content)
-                                                image_file.name = unique_name
-                                                
-                                                # Create PostImage
-                                                post_image = PostImage(
-                                                    post=post,
-                                                    image=image_file,
-                                                    is_main=(i == 0)
-                                                )
-                                                post_image.save()  # Save explicitly
-                                                images_copied += 1
-                                                logger.info(f"Successfully copied product image {product_image.id} using method 2")
-                                            else:
-                                                logger.error(f"Image path does not exist: {image_path}")
-                                        else:
-                                            logger.error(f"Product image {product_image.id} has no path attribute")
-                                    except Exception as e2:
-                                        logger.error(f"Method 2 also failed for image {product_image.id}: {str(e2)}")
-                                        
-                        except Exception as e:
-                            logger.error(f"Error copying product image {product_image.id}: {str(e)}")
-                            continue
-                    
-                    if images_copied > 0:
-                        messages.info(request, _('{count} product image(s) have been added to your post.').format(count=images_copied))
-                    else:
-                        messages.warning(request, _('Could not copy product images. Please try uploading them manually.'))
-                        logger.warning(f"Failed to copy any images for product {post.related_product.id} to post {post.id}")
+                for i, product_image in enumerate(product_images):
+                    try:
+                        if product_image.image and product_image.image.name:
+                            # Open the source image file
+                            source_file = product_image.image
+                            
+                            # Generate a unique filename for the destination
+                            original_name = os.path.basename(source_file.name)
+                            name, ext = os.path.splitext(original_name)
+                            if not ext:
+                                ext = '.jpg'  # Default extension if missing
+                            unique_name = f"community/posts/product_{post.id}_{int(time.time())}_{i}{ext}"
+                            
+                            # Read the source file content
+                            source_file.open('rb')
+                            file_content = source_file.read()
+                            source_file.close()
+                            
+                            # Create a new ContentFile with the content
+                            image_file = ContentFile(file_content)
+                            image_file.name = unique_name
+                            
+                            # Create PostImage with the copied file
+                            post_image = PostImage(
+                                post=post,
+                                is_main=(i == 0)  # First image is main
+                            )
+                            # Save the file to the image field
+                            post_image.image.save(unique_name, image_file, save=True)
+                            images_added += 1
+                            
+                    except Exception as e:
+                        # If copying fails, continue with next image
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Error copying product image {product_image.id}: {str(e)}")
+                        continue
             
-            # Handle additional image uploads from form (these will be added after product images)
-            images = request.FILES.getlist('images')
-            for image in images:
+            # Handle uploaded images from form (additional images)
+            uploaded_images = request.FILES.getlist('images')
+            for i, image in enumerate(uploaded_images):
                 PostImage.objects.create(
                     post=post,
                     image=image,
-                    is_main=False  # Don't make uploaded images main since product images are already there
+                    is_main=False  # Additional images are not main
                 )
+                images_added += 1
+            
+            if images_added == 0 and post.related_product:
+                messages.warning(request, _('The selected product has no images. You can upload images below.'))
             
             # Create activity
             Activity.objects.create(
@@ -202,7 +176,7 @@ def create_post(request):
         product = None
         # Only show products by the current user
         if hasattr(request.user, 'artist'):
-            post_form.fields['related_product'].queryset = Product.objects.filter(artist__user=request.user)
+            post_form.fields['related_product'].queryset = Product.objects.filter(artist__user=request.user).prefetch_related('images')
         else:
             post_form.fields['related_product'].queryset = Product.objects.none()
         
@@ -210,10 +184,18 @@ def create_post(request):
         product_id = request.GET.get('product')
         if product_id:
             try:
-                product = Product.objects.get(id=product_id, artist__user=request.user)
+                product = Product.objects.prefetch_related('images').get(id=product_id, artist__user=request.user)
                 post_form.fields['related_product'].initial = product
             except Product.DoesNotExist:
                 product = None
+        else:
+            # Also check if product is selected in the form (for when user changes selection)
+            selected_product_id = request.GET.get('related_product')
+            if selected_product_id:
+                try:
+                    product = Product.objects.prefetch_related('images').get(id=selected_product_id, artist__user=request.user)
+                except Product.DoesNotExist:
+                    product = None
     
     context = {
         'post_form': post_form,
@@ -593,6 +575,128 @@ def messages_list(request):
     return render(request, 'community/messages_list.html', context)
 
 @login_required
+def send_post_to_connection(request, post_id):
+    """Send a post to a connected user"""
+    if request.method == 'POST':
+        try:
+            post = get_object_or_404(Post, pk=post_id)
+            recipient_id = request.POST.get('recipient_id')
+            
+            if not recipient_id:
+                return JsonResponse({'success': False, 'message': _('Recipient is required')})
+            
+            recipient = get_object_or_404(User, id=recipient_id)
+            
+            # Check if users are connected
+            connection = Connection.objects.filter(
+                Q(from_user=request.user, to_user=recipient, status='accepted') |
+                Q(from_user=recipient, to_user=request.user, status='accepted')
+            ).first()
+            
+            if not connection:
+                return JsonResponse({'success': False, 'message': _('You can only send posts to connected users')})
+            
+            # Check if post was already sent to this user
+            existing_message = Message.objects.filter(
+                sender=request.user,
+                recipient=recipient,
+                shared_post=post
+            ).first()
+            
+            if existing_message:
+                return JsonResponse({'success': False, 'message': _('You have already sent this post to this user')})
+            
+            # Get optional message from request
+            custom_message = request.POST.get('message', '').strip()
+            if custom_message:
+                message_content = custom_message
+            else:
+                message_content = f"{request.user.username} shared a post with you"
+            
+            # Create message with shared post
+            message = Message.objects.create(
+                sender=request.user,
+                recipient=recipient,
+                shared_post=post,
+                content=message_content
+            )
+            
+            # Get or create conversation
+            conversation = Conversation.objects.filter(participants=request.user).filter(participants=recipient).first()
+            if not conversation:
+                conversation = Conversation.objects.create()
+                conversation.participants.add(request.user, recipient)
+            conversation.last_message = message
+            conversation.save()
+            
+            # Create notification
+            Notification.objects.create(
+                recipient=recipient,
+                sender=request.user,
+                notification_type='message',
+                message=f"{request.user.username} shared a post with you",
+                message_obj=message,
+                post=post
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': _('Post sent successfully!')
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': _('An error occurred while sending the post')
+            })
+    
+    return JsonResponse({'success': False, 'message': _('Invalid request')})
+
+@login_required
+def get_connected_users(request):
+    """Get list of connected users for sending posts"""
+    try:
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
+        
+        connections = Connection.objects.filter(
+            Q(from_user=request.user, status='accepted') |
+            Q(to_user=request.user, status='accepted')
+        ).select_related('from_user', 'to_user')
+        
+        connected_users = []
+        seen_user_ids = set()  # Prevent duplicates
+        
+        for conn in connections:
+            if conn.from_user == request.user:
+                user = conn.to_user
+            else:
+                user = conn.from_user
+            
+            # Skip if we've already added this user
+            if user.id in seen_user_ids:
+                continue
+            seen_user_ids.add(user.id)
+            
+            try:
+                profile_picture_url = user.profile_picture.url if user.profile_picture else None
+            except (ValueError, AttributeError):
+                profile_picture_url = None
+            
+            connected_users.append({
+                'id': user.id,
+                'username': user.username,
+                'profile_picture': profile_picture_url
+            })
+        
+        return JsonResponse({'users': connected_users})
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error in get_connected_users: {str(e)}")
+        return JsonResponse({'error': 'An error occurred while loading connected users'}, status=500)
+
+@login_required
 def conversation_detail(request, pk):
     """View a specific conversation"""
     conversation = get_object_or_404(Conversation, pk=pk, participants=request.user)
@@ -672,50 +776,50 @@ def send_connection_request_ajax(request):
             # Determine interaction type based on user roles
             if request.user.role == 'artist' and to_user.role == 'artist':
                 # Artisan-to-artisan: Connection request
-            existing_connection = Connection.objects.filter(
-                Q(from_user=request.user, to_user=to_user) | 
-                Q(from_user=to_user, to_user=request.user)
-            ).first()
-            
-            if existing_connection:
-                if existing_connection.status == 'pending':
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'Connection request already pending'
+                existing_connection = Connection.objects.filter(
+                    Q(from_user=request.user, to_user=to_user) | 
+                    Q(from_user=to_user, to_user=request.user)
+                ).first()
+                
+                if existing_connection:
+                    if existing_connection.status == 'pending':
+                        return JsonResponse({
+                            'success': False,
+                            'message': 'Connection request already pending'
+                        })
+                    elif existing_connection.status == 'accepted':
+                        return JsonResponse({
+                            'success': False,
+                            'message': 'Already connected'
+                        })
+                    elif existing_connection.status == 'blocked':
+                        return JsonResponse({
+                            'success': False,
+                            'message': 'Connection blocked'
+                        })
+                
+                # Create new connection request
+                connection = Connection.objects.create(
+                    from_user=request.user,
+                    to_user=to_user,
+                    status='pending'
+                )
+                
+                # Create notification
+                Notification.objects.create(
+                    recipient=to_user,
+                    sender=request.user,
+                    notification_type='connection_request',
+                    message=f"{request.user.username} wants to connect with you",
+                    connection=connection
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Connection request sent!',
+                        'status': 'pending',
+                        'type': 'connection'
                     })
-                elif existing_connection.status == 'accepted':
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'Already connected'
-                    })
-                elif existing_connection.status == 'blocked':
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'Connection blocked'
-                    })
-            
-            # Create new connection request
-            connection = Connection.objects.create(
-                from_user=request.user,
-                to_user=to_user,
-                status='pending'
-            )
-            
-            # Create notification
-            Notification.objects.create(
-                recipient=to_user,
-                sender=request.user,
-                notification_type='connection_request',
-                message=f"{request.user.username} wants to connect with you",
-                connection=connection
-            )
-            
-            return JsonResponse({
-                'success': True,
-                'message': 'Connection request sent!',
-                    'status': 'pending',
-                    'type': 'connection'
-                })
                 
             elif request.user.role == 'customer' and to_user.role == 'artist':
                 # Customer-to-artisan: Follow
@@ -821,14 +925,14 @@ def get_connection_status(request, user_id):
         # Determine interaction type based on user roles
         if request.user.role == 'artist' and other_user.role == 'artist':
             # Artisan-to-artisan: Check connection status
-        connection = Connection.objects.filter(
-            Q(from_user=request.user, to_user=other_user) | 
-            Q(from_user=other_user, to_user=request.user)
-        ).first()
-        
-        if connection:
-            return JsonResponse({
-                'status': connection.status,
+            connection = Connection.objects.filter(
+                Q(from_user=request.user, to_user=other_user) | 
+                Q(from_user=other_user, to_user=request.user)
+            ).first()
+            
+            if connection:
+                return JsonResponse({
+                    'status': connection.status,
                     'is_from_me': connection.from_user == request.user,
                     'type': 'connection'
                 })

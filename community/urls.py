@@ -32,6 +32,8 @@ urlpatterns = [
     # Messaging
     path('messages/', views.messages_list, name='messages_list'),
     path('conversation/<int:pk>/', views.conversation_detail, name='conversation_detail'),
+    path('post/<uuid:post_id>/send/', views.send_post_to_connection, name='send_post_to_connection'),
+    path('connected-users/', views.get_connected_users, name='get_connected_users'),
     
     # Notifications and discovery
     path('notifications/', views.notifications, name='notifications'),

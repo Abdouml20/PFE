@@ -1,0 +1,22 @@
+# Production requirements for Render + Cloudinary deployment
+# This includes all base requirements plus Cloudinary for media storage
+
+asgiref==3.10.0
+crispy-bootstrap4==2025.6
+Django==5.2.7
+django-allauth==65.12.0
+django-crispy-forms==2.4
+django-filter==25.2
+django-widget-tweaks==1.5.0
+dj-database-url==2.2.0
+psycopg2-binary==2.9.10
+pillow==11.3.0
+python-gettext==5.0
+sqlparse==0.5.3
+gunicorn==23.0.0
+whitenoise==6.11.0
+
+# Cloudinary for media file storage (images, videos)
+django-cloudinary-storage==0.3.0
+cloudinary==1.36.0
+
