@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>{% trans "My Connections" %}</h2>
+                <a href="{% url 'community:send_connection_request' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> {% trans "Connect with Someone" %}
+                </a>
+            </div>
+
+            <!-- Pending Requests -->
+            {% if received_connections %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>{% trans "Pending Requests" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% for connection in received_connections %}
+                    {% if connection.status == 'pending' %}
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{% if connection.from_user.profile_picture %}{{ connection.from_user.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                             class="rounded-circle me-3" width="50" height="50" alt="Profile">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">{{ connection.from_user.username }}</h6>
+                            <small class="text-muted">{{ connection.from_user.get_role_display }}</small>
+                        </div>
+                        <div class="btn-group">
+                            <a href="{% url 'community:accept_connection' connection.pk %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-check"></i> {% trans "Accept" %}
+                            </a>
+                            <a href="{% url 'community:reject_connection' connection.pk %}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-times"></i> {% trans "Reject" %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Sent Requests -->
+            {% if sent_connections %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>{% trans "Sent Requests" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% for connection in sent_connections %}
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{% if connection.to_user.profile_picture %}{{ connection.to_user.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                             class="rounded-circle me-3" width="50" height="50" alt="Profile">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">{{ connection.to_user.username }}</h6>
+                            <small class="text-muted">{{ connection.to_user.get_role_display }}</small>
+                        </div>
+                        <div>
+                            {% if connection.status == 'pending' %}
+                            <span class="badge bg-warning">{% trans "Pending" %}</span>
+                            {% elif connection.status == 'accepted' %}
+                            <span class="badge bg-success">{% trans "Connected" %}</span>
+                            {% elif connection.status == 'blocked' %}
+                            <span class="badge bg-danger">{% trans "Blocked" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Accepted Connections -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>{% trans "My Network" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% for connection in sent_connections %}
+                    {% if connection.status == 'accepted' %}
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{% if connection.to_user.profile_picture %}{{ connection.to_user.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                             class="rounded-circle me-3" width="50" height="50" alt="Profile">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">{{ connection.to_user.username }}</h6>
+                            <small class="text-muted">{{ connection.to_user.get_role_display }}</small>
+                        </div>
+                        <div class="btn-group">
+                            {% if connection.to_user.artist_profile %}
+                            <a href="{% url 'artists:artist_detail' connection.to_user.artist_profile.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-user"></i> {% trans "Profile" %}
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'community:conversation_detail' connection.pk %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-message"></i> {% trans "Message" %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% for connection in received_connections %}
+                    {% if connection.status == 'accepted' %}
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{% if connection.from_user.profile_picture %}{{ connection.from_user.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                             class="rounded-circle me-3" width="50" height="50" alt="Profile">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">{{ connection.from_user.username }}</h6>
+                            <small class="text-muted">{{ connection.from_user.get_role_display }}</small>
+                        </div>
+                        <div class="btn-group">
+                            {% if connection.from_user.artist_profile %}
+                            <a href="{% url 'artists:artist_detail' connection.from_user.artist_profile.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-user"></i> {% trans "Profile" %}
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'community:conversation_detail' connection.pk %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-message"></i> {% trans "Message" %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if not sent_connections and not received_connections %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-users fa-3x mb-3"></i>
+                        <h5>{% trans "No connections yet" %}</h5>
+                        <p>{% trans "Start building your network by connecting with other artisans!" %}</p>
+                        <a href="{% url 'community:discover_users' %}" class="btn btn-primary">
+                            <i class="fas fa-search"></i> {% trans "Discover Artists" %}
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>{% trans "Network Stats" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-primary">{{ sent_connections|length|add:received_connections|length }}</h4>
+                            <small class="text-muted">{% trans "Total" %}</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ sent_connections|length }}</h4>
+                            <small class="text-muted">{% trans "Connected" %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>{% trans "Building Your Network" %}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            {% trans "Connect with artisans in your field" %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            {% trans "Share your work regularly" %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            {% trans "Engage with others' posts" %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            {% trans "Join conversations and discussions" %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            {% trans "Collaborate on projects" %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

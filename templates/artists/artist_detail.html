@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="container py-5">
+    {% csrf_token %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">{% trans "Home" %}</a></li>
@@ -60,6 +61,24 @@
                                 {% endif %}
                             </ul>
                         </div>
+                    {% endif %}
+                    
+                    <!-- Community Connect Button -->
+                    {% if user.is_authenticated and user != artist.user %}
+                    <div class="mt-4">
+                        <button id="connectBtn" class="btn btn-primary w-100" data-user-id="{{ artist.user.id }}">
+                            <i class="fas fa-user-plus"></i> <span id="connectText">{% trans "Connect" %}</span>
+                        </button>
+                        <small class="text-muted d-block mt-2 text-center" id="connectMessage">
+                            {% trans "Connect to collaborate and discuss commissions" %}
+                        </small>
+                    </div>
+                    {% elif not user.is_authenticated %}
+                    <div class="mt-4">
+                        <a href="{% url 'account_login' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-sign-in-alt"></i> {% trans "Login to Connect" %}
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -180,4 +199,235 @@
         </div>
     </div>
 </div>
+
+<script>
+// Connection request functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const connectBtn = document.getElementById('connectBtn');
+    if (connectBtn) {
+        const userId = connectBtn.dataset.userId;
+        
+        // Check initial connection status
+        fetch(`/community/connection-status/${userId}/`)
+            .then(response => response.json())
+            .then(data => {
+                updateConnectButton(data.status, data.is_from_me);
+            });
+        
+        // Handle connect button click
+        connectBtn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            
+            // Disable button during request
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {% trans "Sending..." %}';
+            
+            // Send connection request
+            fetch('/community/send-connection-ajax/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `to_user_id=${userId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateConnectButton('pending', true);
+                    showMessage('success', data.message);
+                } else {
+                    showMessage('error', data.message);
+                    // Re-enable button on error
+                    connectBtn.disabled = false;
+                    connectBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span id="connectText">{% trans "Connect" %}</span>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('error', '{% trans "An error occurred. Please try again." %}');
+                connectBtn.disabled = false;
+                connectBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span id="connectText">{% trans "Connect" %}</span>';
+            });
+        });
+    }
+});
+
+function updateConnectButton(status, isFromMe) {
+    const connectBtn = document.getElementById('connectBtn');
+    const connectText = document.getElementById('connectText');
+    const connectMessage = document.getElementById('connectMessage');
+    
+    if (!connectBtn) return;
+    
+    // Get userId from the connect button
+    const userId = connectBtn.dataset.userId;
+    
+    switch(status) {
+        case 'none':
+            connectBtn.className = 'btn btn-primary w-100';
+            connectBtn.innerHTML = '<i class="fas fa-user-plus"></i> <span id="connectText">{% trans "Connect" %}</span>';
+            connectMessage.textContent = '{% trans "Connect to collaborate and discuss commissions" %}';
+            connectBtn.disabled = false;
+            
+            // Remove cancel button if exists
+            const existingCancelBtn = document.querySelector('.cancel-connection-btn');
+            if (existingCancelBtn) {
+                existingCancelBtn.remove();
+            }
+            break;
+            
+        case 'pending':
+            if (isFromMe) {
+                connectBtn.className = 'btn btn-warning w-100';
+                connectBtn.innerHTML = '<i class="fas fa-clock"></i> <span id="connectText">{% trans "Request Sent" %}</span>';
+                connectMessage.textContent = '{% trans "Waiting for response..." %}';
+                
+                // Add cancel button
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'btn btn-outline-danger btn-sm mt-2 w-100';
+                cancelBtn.innerHTML = '<i class="fas fa-times"></i> {% trans "Cancel Request" %}';
+                cancelBtn.disabled = false; // Ensure button is enabled
+                cancelBtn.onclick = function() {
+                    console.log('Cancel button clicked for user:', userId);
+                    cancelConnectionRequest(userId);
+                };
+                
+                // Remove existing cancel button if any
+                const existingCancelBtn = document.querySelector('.cancel-connection-btn');
+                if (existingCancelBtn) {
+                    existingCancelBtn.remove();
+                }
+                
+                cancelBtn.className += ' cancel-connection-btn';
+                connectBtn.parentNode.appendChild(cancelBtn);
+            } else {
+                connectBtn.className = 'btn btn-info w-100';
+                connectBtn.innerHTML = '<i class="fas fa-user-check"></i> <span id="connectText">{% trans "Respond to Request" %}</span>';
+                connectMessage.textContent = '{% trans "Accept or decline the connection request" %}';
+            }
+            connectBtn.disabled = true;
+            break;
+            
+        case 'accepted':
+            connectBtn.className = 'btn btn-success w-100';
+            connectBtn.innerHTML = '<i class="fas fa-check"></i> <span id="connectText">{% trans "Connected" %}</span>';
+            connectMessage.textContent = '{% trans "You are now connected! You can send messages." %}';
+            connectBtn.disabled = true;
+            
+            // Remove cancel button if exists
+            const existingCancelBtnAccepted = document.querySelector('.cancel-connection-btn');
+            if (existingCancelBtnAccepted) {
+                existingCancelBtnAccepted.remove();
+            }
+            break;
+            
+        case 'blocked':
+            connectBtn.className = 'btn btn-secondary w-100';
+            connectBtn.innerHTML = '<i class="fas fa-ban"></i> <span id="connectText">{% trans "Blocked" %}</span>';
+            connectMessage.textContent = '{% trans "Connection is blocked" %}';
+            connectBtn.disabled = true;
+            
+            // Remove cancel button if exists
+            const existingCancelBtnBlocked = document.querySelector('.cancel-connection-btn');
+            if (existingCancelBtnBlocked) {
+                existingCancelBtnBlocked.remove();
+            }
+            break;
+    }
+}
+
+function cancelConnectionRequest(userId) {
+    console.log('Cancel connection request for user:', userId);
+    const connectBtn = document.getElementById('connectBtn');
+    
+    // Check CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    console.log('CSRF token found:', csrfToken ? 'Yes' : 'No');
+    if (csrfToken) {
+        console.log('CSRF token value:', csrfToken.value);
+    }
+    
+    // Disable cancel button during request
+    const cancelBtn = document.querySelector('.cancel-connection-btn');
+    if (cancelBtn) {
+        cancelBtn.disabled = true;
+        cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {% trans "Cancelling..." %}';
+    }
+    
+    // Send cancel request
+    fetch('/community/cancel-connection-ajax/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `to_user_id=${userId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Cancel response:', data);
+        if (data.success) {
+            updateConnectButton('none', false);
+            showMessage('success', data.message);
+        } else {
+            showMessage('error', data.message);
+            // Re-enable cancel button on error
+            if (cancelBtn) {
+                cancelBtn.disabled = false;
+                cancelBtn.innerHTML = '<i class="fas fa-times"></i> {% trans "Cancel Request" %}';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('error', '{% trans "An error occurred. Please try again." %}');
+        if (cancelBtn) {
+            cancelBtn.disabled = false;
+            cancelBtn.innerHTML = '<i class="fas fa-times"></i> {% trans "Cancel Request" %}';
+        }
+    });
+}
+
+function showMessage(type, message) {
+    // Create a fixed-position notification (like cart notifications)
+    const notificationDiv = document.createElement('div');
+    notificationDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+    notificationDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: none;
+        border-radius: 8px;
+        background-color: ${type === 'success' ? '#d4edda' : '#f8d7da'} !important;
+        color: ${type === 'success' ? '#155724' : '#721c24'} !important;
+        opacity: 1 !important;
+    `;
+    notificationDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(notificationDiv);
+    
+    // Auto-dismiss after 4 seconds
+    setTimeout(() => {
+        if (notificationDiv.parentNode) {
+            notificationDiv.classList.remove('show');
+            setTimeout(() => {
+                if (notificationDiv.parentNode) {
+                    notificationDiv.remove();
+                }
+            }, 150);
+        }
+    }, 4000);
+}
+</script>
 {% endblock %}

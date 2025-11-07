@@ -22,14 +22,16 @@ from django.utils.translation import gettext_lazy as _
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('products.urls')),
+    path('', include('community.urls')),  # Community is now the main homepage
+    path('shop/', include('products.urls')),  # Shop is now a section within community
+    path('community/', include('community.urls')),
     path(_('users/'), include('users.urls')),
     path(_('artists/'), include('artists.urls')),
     path(_('categories/'), include('categories.urls')),
     path(_('cart/'), include('cart.urls')),
     path(_('orders/'), include('orders.urls')),
     path('accounts/', include('allauth.urls')),
-    path('blog/', include('blog.urls', namespace='blog')),
+    path('chatbot/', include('chatbot.urls', namespace='chatbot')),
     path('i18n/', include('django.conf.urls.i18n')),
 ]
 

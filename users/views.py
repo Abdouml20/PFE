@@ -3,10 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
+from django.db.models import Q
 
 from .models import User
 from .forms import UserRegistrationForm, UserProfileForm
 from orders.models import Order
+from community.models import Follow, Connection
 
 # Create your views here.
 @csrf_protect
@@ -31,9 +33,22 @@ def register(request):
 def profile(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     
+    # Get follower and connection counts for artists
+    follower_count = 0
+    connection_count = 0
+    
+    if request.user.role == 'artist':
+        follower_count = Follow.objects.filter(following=request.user).count()
+        connection_count = Connection.objects.filter(
+            Q(from_user=request.user, status='accepted') | 
+            Q(to_user=request.user, status='accepted')
+        ).count()
+    
     context = {
         'user': request.user,
         'orders': orders,
+        'follower_count': follower_count,
+        'connection_count': connection_count,
         'title': _('My Profile'),
     }
     return render(request, 'users/profile.html', context)

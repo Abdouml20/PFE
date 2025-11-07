@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>{% trans "Notifications" %}</h2>
+                <div class="btn-group">
+                    <button class="btn btn-outline-primary active" data-filter="all">{% trans "All" %}</button>
+                    <button class="btn btn-outline-primary" data-filter="unread">{% trans "Unread" %}</button>
+                    <button class="btn btn-outline-primary" data-filter="likes">{% trans "Likes" %}</button>
+                    <button class="btn btn-outline-primary" data-filter="comments">{% trans "Comments" %}</button>
+                    <button class="btn btn-outline-primary" data-filter="connections">{% trans "Connections" %}</button>
+                </div>
+            </div>
+
+            {% if notifications %}
+            <div class="card">
+                <div class="card-body p-0">
+                    {% for notification in notifications %}
+                    <div class="d-flex align-items-center p-3 border-bottom notification-item {% if not notification.is_read %}bg-light{% endif %}" 
+                         data-type="{{ notification.notification_type }}">
+                        <div class="me-3">
+                            {% if notification.notification_type == 'like' %}
+                            <i class="fas fa-heart text-danger fa-lg"></i>
+                            {% elif notification.notification_type == 'comment' %}
+                            <i class="fas fa-comment text-primary fa-lg"></i>
+                            {% elif notification.notification_type == 'connection_request' %}
+                            <i class="fas fa-user-plus text-success fa-lg"></i>
+                            {% elif notification.notification_type == 'connection_accepted' %}
+                            <i class="fas fa-check-circle text-success fa-lg"></i>
+                            {% elif notification.notification_type == 'connection_rejected' %}
+                            <i class="fas fa-times-circle text-danger fa-lg"></i>
+                            {% elif notification.notification_type == 'message' %}
+                            <i class="fas fa-envelope text-info fa-lg"></i>
+                            {% elif notification.notification_type == 'mention' %}
+                            <i class="fas fa-at text-warning fa-lg"></i>
+                            {% else %}
+                            <i class="fas fa-bell text-secondary fa-lg"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">
+                                        {% if notification.sender and notification.sender.artist_profile %}
+                                        <a href="{% url 'artists:artist_detail' notification.sender.artist_profile.pk %}" class="text-decoration-none">
+                                            {{ notification.sender.username }}
+                                        </a>
+                                        {% elif notification.sender %}
+                                        {{ notification.sender.username }}
+                                        {% endif %}
+                                        {{ notification.message }}
+                                    </h6>
+                                    <small class="text-muted">{{ notification.created_at|timesince }} {% trans "ago" %}</small>
+                                </div>
+                                <div class="text-end">
+                                    {% if not notification.is_read %}
+                                    <div class="badge bg-primary rounded-pill">{% trans "New" %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if notification.post %}
+                            <div class="mt-2">
+                                <a href="{% url 'community:post_detail' notification.post.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> {% trans "View Post" %}
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            {% if notification.notification_type == 'connection_request' and notification.sender %}
+                            <div class="mt-2">
+                                {% if notification.connection %}
+                                <button class="btn btn-sm btn-success me-2 accept-connection-btn" data-connection-id="{{ notification.connection.id }}">
+                                    <i class="fas fa-check"></i> {% trans "Accept" %}
+                                </button>
+                                <button class="btn btn-sm btn-danger reject-connection-btn" data-connection-id="{{ notification.connection.id }}">
+                                    <i class="fas fa-times"></i> {% trans "Reject" %}
+                                </button>
+                                {% else %}
+                                <small class="text-muted">{% trans "Connection request actions not available" %}</small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            
+                            {% if notification.message_obj %}
+                            <div class="mt-2">
+                                <a href="{% url 'community:conversation_detail' notification.message_obj.pk %}" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-reply"></i> {% trans "Reply" %}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-bell fa-3x text-muted mb-3"></i>
+                    <h5>{% trans "No notifications yet" %}</h5>
+                    <p class="text-muted">{% trans "You'll receive notifications when someone likes your posts, comments, or sends you messages." %}</p>
+                    <a href="{% url 'community:feed' %}" class="btn btn-primary">
+                        <i class="fas fa-home"></i> {% trans "Go to Feed" %}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Notification Settings -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>{% trans "Notification Settings" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="likes" checked>
+                        <label class="form-check-label" for="likes">
+                            {% trans "Likes on my posts" %}
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="comments" checked>
+                        <label class="form-check-label" for="comments">
+                            {% trans "Comments on my posts" %}
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="connections" checked>
+                        <label class="form-check-label" for="connections">
+                            {% trans "Connection requests" %}
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="messages" checked>
+                        <label class="form-check-label" for="messages">
+                            {% trans "New messages" %}
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="mentions" checked>
+                        <label class="form-check-label" for="mentions">
+                            {% trans "Mentions" %}
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'community:feed' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-home"></i> {% trans "Go to Feed" %}
+                        </a>
+                        <a href="{% url 'community:connections' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-user-friends"></i> {% trans "My Connections" %}
+                        </a>
+                        <a href="{% url 'community:messages_list' %}" class="btn btn-outline-info">
+                            <i class="fas fa-comments"></i> {% trans "Messages" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Filter functionality
+document.querySelectorAll('[data-filter]').forEach(button => {
+    button.addEventListener('click', function() {
+        const filter = this.dataset.filter;
+        
+        // Update active button
+        document.querySelectorAll('[data-filter]').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Filter notifications
+        document.querySelectorAll('.notification-item').forEach(item => {
+            if (filter === 'all') {
+                item.style.display = 'flex';
+            } else if (filter === 'unread') {
+                item.style.display = item.classList.contains('bg-light') ? 'flex' : 'none';
+            } else if (item.dataset.type === filter) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Mark notification as read when clicked
+document.querySelectorAll('.notification-item').forEach(item => {
+    item.addEventListener('click', function() {
+        if (this.classList.contains('bg-light')) {
+            this.classList.remove('bg-light');
+            // Here you would typically send an AJAX request to mark the notification as read
+        }
+    });
+});
+
+// Connection request actions
+document.querySelectorAll('.accept-connection-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent notification click
+        const connectionId = this.dataset.connectionId;
+        
+        console.log('Button clicked, connectionId:', connectionId);
+        console.log('Button element:', this);
+        
+        // Check if connectionId exists
+        if (!connectionId) {
+            console.error('Connection ID not found in button data');
+            showMessage('Connection ID not found. Please refresh the page.', 'error');
+            return;
+        }
+        
+        // Check if CSRF token exists
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            showMessage('Security token not found. Please refresh the page.', 'error');
+            return;
+        }
+        
+        console.log('Accepting connection:', connectionId);
+        console.log('CSRF token:', csrfToken.value);
+        
+        fetch(`/community/accept-connection-notification/${connectionId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken.value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                // Show success message
+                showMessage(data.message, 'success');
+                
+                // Update button states
+                this.innerHTML = '<i class="fas fa-check"></i> Accepted';
+                this.classList.remove('btn-success');
+                this.classList.add('btn-outline-success');
+                this.disabled = true;
+                
+                // Disable reject button
+                const rejectBtn = this.parentElement.querySelector('.reject-connection-btn');
+                if (rejectBtn) {
+                    rejectBtn.style.display = 'none';
+                }
+                
+                // Update notification count
+                updateNotificationCounts();
+            } else {
+                showMessage(data.message || 'Failed to accept connection', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error accepting connection:', error);
+            showMessage('An error occurred while accepting the connection', 'error');
+        });
+    });
+});
+
+document.querySelectorAll('.reject-connection-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent notification click
+        const connectionId = this.dataset.connectionId;
+        
+        console.log('Reject button clicked, connectionId:', connectionId);
+        console.log('Button element:', this);
+        
+        // Check if connectionId exists
+        if (!connectionId) {
+            console.error('Connection ID not found in button data');
+            showMessage('Connection ID not found. Please refresh the page.', 'error');
+            return;
+        }
+        
+        // Check if CSRF token exists
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            showMessage('Security token not found. Please refresh the page.', 'error');
+            return;
+        }
+        
+        console.log('Rejecting connection:', connectionId);
+        console.log('CSRF token:', csrfToken.value);
+        
+        fetch(`/community/reject-connection-notification/${connectionId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken.value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                // Show success message
+                showMessage(data.message, 'success');
+                
+                // Hide the entire notification item
+                const notificationItem = this.closest('.notification-item');
+                if (notificationItem) {
+                    notificationItem.style.display = 'none';
+                }
+                
+                // Update notification count
+                updateNotificationCounts();
+            } else {
+                showMessage(data.message || 'Failed to reject connection', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error rejecting connection:', error);
+            showMessage('An error occurred while rejecting the connection', 'error');
+        });
+    });
+});
+
+function showMessage(message, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+    messageDiv.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        background-color: ${type === 'success' ? '#d4edda' : '#f8d7da'} !important;
+        color: ${type === 'success' ? '#155724' : '#721c24'} !important;
+        border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};
+        border-radius: 0.375rem;
+        padding: 0.75rem 1.25rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    `;
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000);
+}
+
+function updateNotificationCounts() {
+    fetch('/community/notification-counts/')
+        .then(response => response.json())
+        .then(data => {
+            // Update notification count
+            const notificationBadge = document.querySelector('.nav-link[href*="notifications"] .badge');
+            if (data.unread_notifications > 0) {
+                if (notificationBadge) {
+                    notificationBadge.textContent = data.unread_notifications;
+                } else {
+                    const notificationLink = document.querySelector('.nav-link[href*="notifications"]');
+                    if (notificationLink) {
+                        const badge = document.createElement('span');
+                        badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                        badge.textContent = data.unread_notifications;
+                        notificationLink.appendChild(badge);
+                    }
+                }
+            } else {
+                if (notificationBadge) {
+                    notificationBadge.remove();
+                }
+            }
+        })
+        .catch(error => console.error('Error updating notification counts:', error));
+}
+</script>
+{% endblock %}

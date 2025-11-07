@@ -172,6 +172,16 @@
                 {% endif %}
             {% endif %}
             
+            <!-- Share to Community -->
+            {% if user.is_authenticated and user.role == 'artist' and user.artist_profile == product.artist %}
+            <div class="mb-4">
+                <a href="{% url 'community:create_post' %}?product={{ product.id }}" class="btn btn-outline-primary">
+                    <i class="fas fa-share"></i> {% trans "Share to Community" %}
+                </a>
+                <small class="text-muted d-block mt-1">{% trans "Share this product with the community to showcase your work" %}</small>
+            </div>
+            {% endif %}
+            
             <!-- Description -->
             <div class="mb-4">
                 <h5>{% trans "Description" %}</h5>

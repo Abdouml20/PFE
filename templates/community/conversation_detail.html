@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <a href="{% url 'community:messages_list' %}" class="btn btn-outline-secondary btn-sm me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="d-flex align-items-center">
+                        {% for participant in conversation.participants.all %}
+                        {% if participant != user %}
+                        <img src="{% if participant.profile_picture %}{{ participant.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                             class="rounded-circle me-3" width="40" height="40" alt="Profile">
+                        <div>
+                            <h5 class="mb-0">{{ participant.username }}</h5>
+                            <small class="text-muted">{{ participant.get_role_display }}</small>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="card-body" style="height: 500px; overflow-y: auto;" id="messages-container">
+                    {% for message in messages %}
+                    <div class="d-flex mb-3 {% if message.sender == user %}justify-content-end{% else %}justify-content-start{% endif %}">
+                        <div class="message-bubble {% if message.sender == user %}bg-primary text-white{% else %}bg-light{% endif %} p-3 rounded" style="max-width: 70%;">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="{% if message.sender.profile_picture %}{{ message.sender.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                                     class="rounded-circle me-2" width="25" height="25" alt="Profile">
+                                <small class="{% if message.sender == user %}text-white-50{% else %}text-muted{% endif %}">
+                                    {{ message.sender.username }}
+                                </small>
+                            </div>
+                            <p class="mb-0">{{ message.content|linebreaks }}</p>
+                            <small class="{% if message.sender == user %}text-white-50{% else %}text-muted{% endif %} d-block mt-2">
+                                {{ message.created_at|timesince }} {% trans "ago" %}
+                            </small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-comments fa-2x mb-2"></i>
+                        <p>{% trans "No messages yet. Start the conversation!" %}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="card-footer">
+                    <form method="post" id="message-form">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            {{ form.content }}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Participant Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>{% trans "Conversation Info" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% for participant in conversation.participants.all %}
+                    {% if participant != user %}
+                    <div class="text-center">
+                        <img src="{% if participant.profile_picture %}{{ participant.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                             class="rounded-circle mb-3" width="80" height="80" alt="Profile">
+                        <h5>{{ participant.username }}</h5>
+                        <p class="text-muted">{{ participant.get_role_display }}</p>
+                        
+                        {% if participant.wilaya %}
+                        <p class="small text-muted">
+                            <i class="fas fa-map-marker-alt"></i> {{ participant.get_wilaya_display }}
+                        </p>
+                        {% endif %}
+                        
+                        {% if participant.artist_profile %}
+                        <a href="{% url 'artists:artist_detail' participant.artist_profile.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user"></i> {% trans "View Profile" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="scrollToBottom()">
+                            <i class="fas fa-arrow-down"></i> {% trans "Scroll to Bottom" %}
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearChat()">
+                            <i class="fas fa-trash"></i> {% trans "Clear Chat" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-scroll to bottom when page loads
+window.addEventListener('load', function() {
+    scrollToBottom();
+});
+
+// Auto-scroll to bottom when new message is sent
+document.getElementById('message-form').addEventListener('submit', function() {
+    setTimeout(scrollToBottom, 100);
+});
+
+function scrollToBottom() {
+    const container = document.getElementById('messages-container');
+    container.scrollTop = container.scrollHeight;
+}
+
+function clearChat() {
+    if (confirm('{% trans "Are you sure you want to clear this chat? This action cannot be undone." %}')) {
+        // Implement clear chat functionality
+        alert('{% trans "Chat cleared!" %}');
+    }
+}
+
+// Auto-refresh messages every 30 seconds
+setInterval(function() {
+    // Implement auto-refresh functionality
+    // This would typically involve an AJAX call to fetch new messages
+}, 30000);
+</script>
+
+<style>
+.message-bubble {
+    word-wrap: break-word;
+}
+
+#messages-container {
+    scroll-behavior: smooth;
+}
+
+.message-bubble.bg-primary {
+    background-color: #007bff !important;
+}
+
+.message-bubble.bg-light {
+    background-color: #f8f9fa !important;
+}
+</style>
+{% endblock %}

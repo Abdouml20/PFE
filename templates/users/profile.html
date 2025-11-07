@@ -20,6 +20,22 @@
                     <h4>{{ user.get_full_name }}</h4>
                     <p class="text-muted">@{{ user.username }}</p>
                     
+                    {% if user.role == 'artist' %}
+                    <!-- Artist Stats -->
+                    <div class="row text-center mb-3">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h5 class="text-primary mb-1">{{ follower_count }}</h5>
+                                <small class="text-muted">{% trans "Followers" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-success mb-1">{{ connection_count }}</h5>
+                            <small class="text-muted">{% trans "Connections" %}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     <div class="d-grid gap-2 mt-3">
                         <a href="{% url 'users:edit_profile' %}" class="btn btn-primary">
                             <i class="fas fa-user-edit me-2"></i> {% trans "Edit Profile" %}

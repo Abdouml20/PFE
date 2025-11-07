@@ -53,8 +53,8 @@ INSTALLED_APPS = [
     'categories.apps.CategoriesConfig',
     'orders.apps.OrdersConfig',
     'cart.apps.CartConfig',
-    'blog.apps.BlogConfig',
     'chatbot.apps.ChatbotConfig',
+    'community.apps.CommunityConfig',
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
@@ -88,6 +88,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
                 'cart.context_processors.cart',
+                'community.context_processors.notification_counts',
             ],
         },
     },

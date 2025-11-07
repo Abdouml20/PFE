@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import Product
 from categories.models import Category
-from blog.models import BlogPost
 
 # Create your views here.
 def product_list(request):
@@ -16,14 +15,10 @@ def product_list(request):
     # Get all craft categories for sidebar
     craft_categories = Product.CRAFT_CHOICES
     
-    # Most liked blog posts (top 3)
-    most_liked_blog_posts = BlogPost.objects.annotate(num_likes=Count('likes')).order_by('-num_likes', '-created_at')[:3]
-    
     context = {
         'featured_products': featured_products,
         'latest_products': latest_products,
         'craft_categories': craft_categories,
-        'most_liked_blog_posts': most_liked_blog_posts,
         'title': _('Home'),
     }
     return render(request, 'products/product_list.html', context)

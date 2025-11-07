@@ -35,7 +35,9 @@ class CartItem(models.Model):
     class Meta:
         verbose_name = _('cart item')
         verbose_name_plural = _('cart items')
-        unique_together = ('cart', 'product')
+        constraints = [
+            models.UniqueConstraint(fields=['cart', 'product'], name='unique_cart_product')
+        ]
     
     def __str__(self):
         return f'{self.quantity}x {self.product.name}'

@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">{% trans "Create New Post" %}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ post_form|crispy }}
+                        
+                        {% if product %}
+                        <div class="alert alert-info mb-3">
+                            <h6><i class="fas fa-info-circle me-2"></i>{% trans "Product Images" %}</h6>
+                            <p class="mb-2">{% trans "Images from" %} <strong>{{ product.name }}</strong> {% trans "will be automatically added to your post. You can add more images below or modify them before posting." %}</p>
+                            <div class="row mt-3" id="productImagesPreview">
+                                {% for picture in product.images.all %}
+                                <div class="col-md-3 mb-3">
+                                    <div class="card">
+                                        <img src="{{ picture.image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;" alt="{{ picture.description|default:product.name }}">
+                                        <div class="card-body p-2">
+                                            <small class="text-muted d-block">{{ picture.description|default:"Product Image" }}</small>
+                                            {% if picture.is_main %}
+                                            <small class="text-primary"><i class="fas fa-star"></i> {% trans "Main Image" %}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Additional Images" %} {% if product %}<small class="text-muted">({% trans "Optional - product images will be included automatically" %})</small>{% endif %}</label>
+                            <input type="file" class="form-control" name="images" multiple accept="image/*" id="imageInput">
+                            <div class="form-text">{% trans "You can upload multiple images to showcase your work (hold Ctrl/Cmd to select multiple)" %}</div>
+                            <div id="imagePreview" class="mt-3"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'community:feed' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> {% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-share"></i> {% trans "Share Post" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Post Types Help -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>{% trans "Post Types" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check-circle text-success"></i> {% trans "Completed Work" %}</h6>
+                            <p class="text-muted small">{% trans "Showcase your finished pieces and share the story behind them" %}</p>
+                            
+                            <h6><i class="fas fa-tools text-warning"></i> {% trans "Work in Progress" %}</h6>
+                            <p class="text-muted small">{% trans "Share your creative process and get feedback from the community" %}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb text-info"></i> {% trans "Inspiration" %}</h6>
+                            <p class="text-muted small">{% trans "Share what inspires you and influences your work" %}</p>
+                            
+                            <h6><i class="fas fa-graduation-cap text-primary"></i> {% trans "Tutorial" %}</h6>
+                            <p class="text-muted small">{% trans "Teach others your techniques and share your knowledge" %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview functionality
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    const files = e.target.files;
+    const previewContainer = document.getElementById('imagePreview');
+    previewContainer.innerHTML = ''; // Clear previous previews
+    
+    if (files.length > 0) {
+        const row = document.createElement('div');
+        row.className = 'row';
+        
+        Array.from(files).forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const col = document.createElement('div');
+                    col.className = 'col-md-3 mb-2';
+                    col.innerHTML = `
+                        <div class="card">
+                            <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                            <div class="card-body p-2">
+                                <small class="text-muted">${file.name}</small>
+                                <br>
+                                <small class="text-primary">Image ${index + 1}</small>
+                            </div>
+                        </div>
+                    `;
+                    row.appendChild(col);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        previewContainer.appendChild(row);
+        
+        // Show count
+        const countDiv = document.createElement('div');
+        countDiv.className = 'alert alert-info mt-2';
+        countDiv.innerHTML = `<i class="fas fa-info-circle"></i> ${files.length} image(s) selected`;
+        previewContainer.appendChild(countDiv);
+    }
+});
+</script>
+{% endblock %}

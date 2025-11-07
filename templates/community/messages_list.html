@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>{% trans "Messages" %}</h2>
+                <a href="{% url 'community:send_connection_request' %}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> {% trans "Connect with Someone" %}
+                </a>
+            </div>
+
+            {% if conversations %}
+            <div class="card">
+                <div class="card-body p-0">
+                    {% for conversation in conversations %}
+                    <div class="d-flex align-items-center p-3 border-bottom conversation-item" 
+                         onclick="location.href='{% url 'community:conversation_detail' conversation.pk %}'" 
+                         style="cursor: pointer;">
+                        <img src="{% if conversation.last_message.sender.profile_picture %}{{ conversation.last_message.sender.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                             class="rounded-circle me-3" width="50" height="50" alt="Profile">
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-0">
+                                        {% for participant in conversation.participants.all %}
+                                        {% if participant != user %}
+                                        {{ participant.username }}
+                                        {% endif %}
+                                        {% endfor %}
+                                    </h6>
+                                    <p class="text-muted mb-0 small">
+                                        {% if conversation.last_message %}
+                                        {{ conversation.last_message.content|truncatewords:10 }}
+                                        {% else %}
+                                        {% trans "No messages yet" %}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    {% if conversation.last_message %}
+                                    <small class="text-muted">{{ conversation.last_message.created_at|timesince }} {% trans "ago" %}</small>
+                                    {% endif %}
+                                    {% if conversation.last_message and conversation.last_message.recipient == user and not conversation.last_message.is_read %}
+                                    <div class="badge bg-primary rounded-pill mt-1">{% trans "New" %}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                    <h5>{% trans "No conversations yet" %}</h5>
+                    <p class="text-muted">{% trans "Start connecting with other artisans to begin messaging!" %}</p>
+                    <a href="{% url 'community:discover_users' %}" class="btn btn-primary">
+                        <i class="fas fa-search"></i> {% trans "Discover Artists" %}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'community:discover_users' %}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="fas fa-search"></i> {% trans "Find Artists" %}
+                    </a>
+                    <a href="{% url 'community:connections' %}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-user-friends"></i> {% trans "My Connections" %}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>{% trans "Messaging Tips" %}</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            {% trans "Be respectful and professional" %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            {% trans "Share your work and ask questions" %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            {% trans "Discuss collaboration opportunities" %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            {% trans "Ask for advice and share knowledge" %}
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>
+                            {% trans "Discuss custom commissions" %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.conversation-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}

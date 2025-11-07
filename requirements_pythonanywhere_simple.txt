@@ -1,0 +1,14 @@
+# PythonAnywhere deployment requirements (without mysqlclient)
+# mysqlclient will be installed by PythonAnywhere automatically
+asgiref==3.10.0
+crispy-bootstrap4==2025.6
+Django==5.2.7
+django-allauth==65.12.0
+django-crispy-forms==2.4
+django-filter==25.2
+django-widget-tweaks==1.5.0
+dj-database-url==3.0.1
+pillow==11.3.0
+python-gettext==5.0
+sqlparse==0.5.3
+whitenoise==6.11.0

@@ -1,0 +1,481 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <!-- Main Post -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center">
+                    <img src="{% if post.author.profile_picture %}{{ post.author.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                         class="rounded-circle me-3" width="50" height="50" alt="Profile">
+                    <div>
+                        <h5 class="mb-0">{{ post.author.username }}</h5>
+                        <small class="text-muted">{{ post.created_at|timesince }} {% trans "ago" %}</small>
+                    </div>
+                    <div class="ms-auto">
+                        <span class="badge bg-secondary">{{ post.get_post_type_display }}</span>
+                    </div>
+                </div>
+                
+                {% if post.images.exists %}
+                <div class="post-images">
+                    {% for image in post.images.all %}
+                    <div class="post-image-container mb-3">
+                        <img src="{{ image.image.url }}" class="img-fluid post-image" alt="{{ image.caption }}">
+                        {% if image.caption %}
+                        <p class="text-muted text-center mt-2">{{ image.caption }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <h3 class="card-title">{{ post.title }}</h3>
+                    <div class="card-text">{{ post.content|linebreaks }}</div>
+                    
+                    {% if post.tags %}
+                    <div class="tags mt-3">
+                        {% for tag in post.get_tags_list %}
+                        <span class="badge bg-light text-dark me-1">#{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if post.related_product %}
+                    <div class="related-product mt-4 mb-3">
+                        <div class="card border-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center flex-grow-1">
+                                        {% if post.related_product.main_image %}
+                                        <img src="{{ post.related_product.main_image.image.url }}" 
+                                             class="me-3 rounded" width="80" height="80" style="object-fit: cover;" alt="Product">
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-1">{{ post.related_product.name }}</h6>
+                                            <p class="text-muted mb-1 small">{{ post.related_product.description|truncatewords:15 }}</p>
+                                            <p class="text-primary mb-0"><strong>{{ post.related_product.price }} DA</strong></p>
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <a href="{{ post.related_product.get_absolute_url }}" class="btn btn-primary">
+                                            <i class="fas fa-shopping-bag me-2"></i>{% trans "Check in Shop" %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex">
+                            <button class="btn btn-sm btn-outline-danger me-2 like-btn" data-post-id="{{ post.pk }}">
+                                <i class="fas fa-heart"></i> <span class="like-count">{{ post.total_likes }}</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary me-2 save-btn" data-post-id="{{ post.pk }}">
+                                <i class="fas fa-bookmark"></i> <span class="save-count">{{ post.total_saves }}</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#comments">
+                                <i class="fas fa-comment"></i> {{ post.total_comments }}
+                            </button>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-share"></i> {% trans "Share" %}
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="shareOnFacebook()">Facebook</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="shareOnTwitter()">Twitter</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="copyLink()">{% trans "Copy Link" %}</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>{% trans "Comments" %} ({{ post.total_comments }})</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Add Comment Form -->
+                    {% if user.is_authenticated %}
+                    <form method="post" class="mb-4">
+                        {% csrf_token %}
+                        {{ comment_form|crispy }}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-comment"></i> {% trans "Add Comment" %}
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <a href="{% url 'account_login' %}">{% trans "Login" %}</a> {% trans "to add comments" %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Comments List -->
+                    <div id="comments" class="collapse show">
+                        {% for comment in comments %}
+                        <div class="comment mb-3">
+                            <div class="d-flex">
+                                <img src="{% if comment.author.profile_picture %}{{ comment.author.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                                     class="rounded-circle me-3" width="40" height="40" alt="Profile">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-0">{{ comment.author.username }}</h6>
+                                            <small class="text-muted">{{ comment.created_at|timesince }} {% trans "ago" %}</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger like-comment-btn" data-comment-id="{{ comment.pk }}">
+                                            <i class="fas fa-heart"></i> <span class="like-count">{{ comment.total_likes }}</span>
+                                        </button>
+                                    </div>
+                                    <p class="mt-2 mb-0">{{ comment.content|linebreaks }}</p>
+                                    
+                                    <!-- Replies -->
+                                    {% if comment.replies.exists %}
+                                    <div class="replies mt-3 ms-4">
+                                        {% for reply in comment.replies.all %}
+                                        <div class="reply mb-2">
+                                            <div class="d-flex">
+                                                <img src="{% if reply.author.profile_picture %}{{ reply.author.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                                                     class="rounded-circle me-2" width="30" height="30" alt="Profile">
+                                                <div>
+                                                    <h6 class="mb-0 small">{{ reply.author.username }}</h6>
+                                                    <small class="text-muted">{{ reply.created_at|timesince }} {% trans "ago" %}</small>
+                                                    <p class="mt-1 mb-0 small">{{ reply.content|linebreaks }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted">
+                            <i class="fas fa-comments fa-2x mb-2"></i>
+                            <p>{% trans "No comments yet. Be the first to comment!" %}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Author Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>{% trans "About the Author" %}</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{% if post.author.profile_picture %}{{ post.author.profile_picture.url }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}" 
+                         class="rounded-circle mb-3" width="80" height="80" alt="Profile">
+                    <h5>{{ post.author.username }}</h5>
+                    <p class="text-muted">{{ post.author.get_role_display }}</p>
+                    
+                    {% if post.author != user %}
+                    <div class="d-grid gap-2">
+                        {% if post.author.artist_profile %}
+                        <a href="{% url 'artists:artist_detail' post.author.artist_profile.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user"></i> {% trans "View Profile" %}
+                        </a>
+                        {% endif %}
+                        {% if post.author != request.user %}
+                        <button class="btn btn-primary connect-btn" data-user-id="{{ post.author.id }}">
+                            <i class="fas fa-user-plus"></i> {% trans "Connect" %}
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Related Posts -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>{% trans "More from" %} {{ post.author.username }}</h5>
+                </div>
+                <div class="card-body">
+                    {% for related_post in post.author.posts.all|slice:":3" %}
+                    {% if related_post.pk != post.pk %}
+                    <div class="d-flex mb-3">
+                        {% if related_post.images.exists %}
+                        <img src="{{ related_post.images.first.image.url }}" 
+                             class="me-3" width="60" height="60" style="object-fit: cover;" alt="Post">
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-0">
+                                <a href="{% url 'community:post_detail' related_post.pk %}" class="text-decoration-none">
+                                    {{ related_post.title|truncatewords:5 }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ related_post.created_at|timesince }} {% trans "ago" %}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Like functionality
+document.querySelector('.like-btn').addEventListener('click', function() {
+    const postId = this.dataset.postId;
+    fetch(`/community/post/${postId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        const likeCount = this.querySelector('.like-count');
+        likeCount.textContent = data.total_likes;
+        
+        if (data.liked) {
+            this.classList.remove('btn-outline-danger');
+            this.classList.add('btn-danger');
+        } else {
+            this.classList.remove('btn-danger');
+            this.classList.add('btn-outline-danger');
+        }
+    });
+});
+
+// Save functionality
+document.querySelector('.save-btn').addEventListener('click', function() {
+    const postId = this.dataset.postId;
+    fetch(`/community/post/${postId}/save/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        const saveCount = this.querySelector('.save-count');
+        saveCount.textContent = data.total_saves;
+        
+        if (data.saved) {
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-primary');
+        } else {
+            this.classList.remove('btn-primary');
+            this.classList.add('btn-outline-primary');
+        }
+    });
+});
+
+// Like comment functionality
+document.querySelectorAll('.like-comment-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const commentId = this.dataset.commentId;
+        fetch(`/community/comment/${commentId}/like/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            const likeCount = this.querySelector('.like-count');
+            likeCount.textContent = data.total_likes;
+            
+            if (data.liked) {
+                this.classList.remove('btn-outline-danger');
+                this.classList.add('btn-danger');
+            } else {
+                this.classList.remove('btn-danger');
+                this.classList.add('btn-outline-danger');
+            }
+        });
+    });
+});
+
+// Share functionality
+function shareOnFacebook() {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+}
+
+function shareOnTwitter() {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('{{ post.title }}');
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+}
+
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('{% trans "Link copied to clipboard!" %}');
+    });
+}
+
+// Connect button functionality (consistent with other pages)
+document.querySelectorAll('.connect-btn').forEach(btn => {
+    const userId = btn.dataset.userId;
+    
+    // Check initial connection status
+    fetch(`/community/connection-status/${userId}/`)
+        .then(response => response.json())
+        .then(data => {
+            updateConnectButton(btn, data.status, data.is_from_me);
+        });
+    
+    // Handle connect button click
+    btn.addEventListener('click', function() {
+        const userId = this.dataset.userId;
+        
+        // Disable button during request
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {% trans "Sending..." %}';
+        
+        // Send connection request
+        fetch('/community/send-connection-ajax/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `to_user_id=${userId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateConnectButton(btn, 'pending', true);
+                showMessage('success', data.message);
+            } else {
+                showMessage('error', data.message);
+                // Re-enable button on error
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> {% trans "Connect" %}';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('error', '{% trans "An error occurred. Please try again." %}');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> {% trans "Connect" %}';
+        });
+    });
+});
+
+function updateConnectButton(btn, status, isFromMe) {
+    if (!btn) return;
+    
+    switch(status) {
+        case 'none':
+            btn.className = 'btn btn-primary connect-btn';
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> {% trans "Connect" %}';
+            btn.disabled = false;
+            break;
+            
+        case 'pending':
+            if (isFromMe) {
+                btn.className = 'btn btn-warning connect-btn';
+                btn.innerHTML = '<i class="fas fa-clock"></i> {% trans "Request Sent" %}';
+                btn.disabled = true;
+                // Note: Cancel button only appears on artist profile pages, not on post detail
+            } else {
+                btn.className = 'btn btn-info connect-btn';
+                btn.innerHTML = '<i class="fas fa-user-check"></i> {% trans "Respond" %}';
+                btn.disabled = true;
+            }
+            break;
+            
+        case 'accepted':
+            btn.className = 'btn btn-success connect-btn';
+            btn.innerHTML = '<i class="fas fa-check"></i> {% trans "Connected" %}';
+            btn.disabled = true;
+            break;
+            
+        case 'blocked':
+            btn.className = 'btn btn-secondary connect-btn';
+            btn.innerHTML = '<i class="fas fa-ban"></i> {% trans "Blocked" %}';
+            btn.disabled = true;
+            break;
+    }
+}
+
+function showMessage(type, message) {
+    // Create a fixed-position notification (like cart notifications)
+    const notificationDiv = document.createElement('div');
+    notificationDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+    notificationDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border: none;
+        border-radius: 8px;
+        background-color: ${type === 'success' ? '#d4edda' : '#f8d7da'} !important;
+        color: ${type === 'success' ? '#155724' : '#721c24'} !important;
+        opacity: 1 !important;
+    `;
+    notificationDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(notificationDiv);
+    
+    // Auto-dismiss after 4 seconds
+    setTimeout(() => {
+        if (notificationDiv.parentNode) {
+            notificationDiv.classList.remove('show');
+            setTimeout(() => {
+                if (notificationDiv.parentNode) {
+                    notificationDiv.remove();
+                }
+            }, 150);
+        }
+    }, 4000);
+}
+</script>
+
+<style>
+.post-image {
+    max-width: 100%;
+    max-height: 500px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.post-image-container {
+    text-align: center;
+}
+
+.post-images {
+    margin: 1rem 0;
+}
+</style>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
@@ -99,7 +100,14 @@ def add_product(request):
                 picture.save()
             
             messages.success(request, _('Product added successfully!'))
-            return redirect('artists:artist_dashboard')
+            
+            # Check if user wants to create a post about this product
+            create_post = request.POST.get('create_post', 'false')
+            if create_post == 'true':
+                # Redirect to create post page with product ID
+                return redirect(f"{reverse('community:create_post')}?product={product.id}")
+            else:
+                return redirect('artists:artist_dashboard')
     else:
         form = ProductForm()
         formset = PictureFormSet()

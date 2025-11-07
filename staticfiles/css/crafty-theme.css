@@ -1,41 +1,26 @@
 /* Crafty Theme - Artisanal E-commerce Theme */
 
 :root {
-  /* Logo-inspired colors */
-  --primary-brown: #8b5d2e;     /* Brown from logo */
-  --secondary-teal: #3d7a75;    /* Teal from logo */
-  --accent-green: #8ba88f;      /* Light green from logo */
-  
-  /* Main color assignments */
-  --primary-color: var(--primary-brown);
-  --secondary-color: var(--secondary-teal);
-  --accent-color: var(--accent-green);
-  
-  /* Background and text colors */
-  --light-bg: #f9f6f1;
-  --dark-text: #4a3728;
-  --light-text: #f9f6f1;
-  --border-color: var(--accent-green);
-  
-  /* Status colors */
-  --success-color: #3d7a75;     /* Teal */
-  --warning-color: #d4af37;     /* Gold */
-  --danger-color: #c87f5a;      /* Terracotta */
-  --info-color: #8ba88f;        /* Light green */
-  
-  /* Shadows with logo colors */
-  --shadow-sm: 0 2px 8px rgba(139, 93, 46, 0.1);
-  --shadow-md: 0 4px 12px rgba(139, 93, 46, 0.15);
-  --shadow-lg: 0 8px 24px rgba(139, 93, 46, 0.2);
-  
-  /* Additional colors */
-  --cream-color: #f5efe0;
-  --terracotta: #c87f5a;
-  --muted-gold: #d4af37;
-  --soft-beige: #e8dcca;
-  --warm-brown: #7d5a50;
-  
-  /* Other variables */
+  /* Logo-inspired color palette */
+  --primary-color: #8b5d2b;      /* Brown from logo */
+  --secondary-color: #3d7a74;    /* Teal from logo */
+  --accent-color: #8aa989;       /* Light green from logo */
+  --light-bg: #f9f6f1;           /* Light cream background */
+  --dark-text: #4a3728;          /* Dark brown text */
+  --light-text: #f9f6f1;         /* Light cream text */
+  --border-color: #8b5d2b;       /* Brown border */
+  --success-color: #3d7a74;      /* Teal success */
+  --warning-color: #c89b67;      /* Light brown warning */
+  --danger-color: #a84c32;       /* Rusty red danger */
+  --info-color: #3d7a74;         /* Teal info */
+  --shadow-sm: 0 2px 8px rgba(139, 93, 43, 0.1);
+  --shadow-md: 0 4px 12px rgba(139, 93, 43, 0.15);
+  --shadow-lg: 0 8px 24px rgba(139, 93, 43, 0.2);
+  --cream-color: #f5efe0;        /* Cream */
+  --terracotta: #a84c32;         /* Terracotta */
+  --muted-gold: #c89b67;         /* Muted gold */
+  --soft-beige: #e8dcca;         /* Soft beige */
+  --warm-brown: #8b5d2b;         /* Warm brown */
   --border-radius: 0.5rem;
   --transition-speed: 0.3s;
 }
@@ -64,67 +49,26 @@ a:hover {
 }
 
 /* Buttons */
-.btn {
-  border-radius: var(--border-radius);
-  padding: 0.5rem 1.5rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
-}
-
 .btn-primary {
-  background-color: var(--primary-brown);
-  border-color: var(--primary-brown);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
   color: var(--light-text);
 }
 
 .btn-primary:hover, .btn-primary:focus {
-  background-color: var(--secondary-teal);
-  border-color: var(--secondary-teal);
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
   color: var(--light-text);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-secondary {
-  background-color: var(--secondary-teal);
-  border-color: var(--secondary-teal);
-  color: var(--light-text);
-}
-
-.btn-secondary:hover, .btn-secondary:focus {
-  background-color: #336b66; /* Darker teal */
-  border-color: #336b66;
-  color: var(--light-text);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 .btn-outline-primary {
-  color: var(--primary-brown);
-  border-color: var(--primary-brown);
-  background-color: transparent;
+  color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .btn-outline-primary:hover, .btn-outline-primary:focus {
-  background-color: var(--primary-brown);
+  background-color: var(--primary-color);
   color: var(--light-text);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-outline-secondary {
-  color: var(--secondary-teal);
-  border-color: var(--secondary-teal);
-  background-color: transparent;
-}
-
-.btn-outline-secondary:hover, .btn-outline-secondary:focus {
-  background-color: var(--secondary-teal);
-  color: var(--light-text);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 /* Navbar */
@@ -132,7 +76,7 @@ a:hover {
   background-color: var(--light-bg);
   box-shadow: var(--shadow-sm);
   padding: 1rem 0;
-  border-bottom: 1px solid rgba(139, 93, 46, 0.1);
+  border-bottom: 1px solid rgba(139, 93, 43, 0.1);
 }
 
 .navbar-brand {
@@ -147,44 +91,13 @@ a:hover {
   padding-right: 2rem;
 }
 
-.navbar-brand img {
-  height: 40px;
-  margin-bottom: 5px;
-}
-
-.crafty-tagline {
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 400;
-  color: var(--secondary-teal);
-  letter-spacing: 0.5px;
-}
-
-.nav-link {
-  color: var(--primary-brown);
-  font-weight: 500;
-  transition: color 0.3s ease;
+.crafty-logo {
+  color: var(--primary-color);
+  background: -webkit-linear-gradient(var(--primary-color), var(--secondary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   position: relative;
-}
-
-.nav-link:hover, .nav-link.active {
-  color: var(--secondary-teal);
-}
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 2px;
-  bottom: 0;
-  left: 50%;
-  background-color: var(--secondary-teal);
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-.nav-link:hover::after, .nav-link.active::after {
-  width: 80%;
 }
 
 .crafty-logo::after {
@@ -194,7 +107,7 @@ a:hover {
   left: 0;
   width: 100%;
   height: 3px;
-  background: linear-gradient(to right, var(--accent-color), transparent);
+  background: linear-gradient(to right, var(--secondary-color), var(--accent-color), transparent);
 }
 
 .crafty-tagline {
@@ -202,7 +115,7 @@ a:hover {
   font-family: 'Poppins', sans-serif;
   font-weight: 400;
   letter-spacing: 1px;
-  color: var(--accent-color);
+  color: var(--secondary-color);
   margin-top: -0.5rem;
 }
 
@@ -353,7 +266,7 @@ a:hover {
   left: 0;
   width: 80px;
   height: 3px;
-  background: linear-gradient(to right, var(--secondary-color), transparent);
+  background: linear-gradient(to right, var(--secondary-color), var(--accent-color), transparent);
 }
 
 .hero-subtitle {
@@ -363,7 +276,7 @@ a:hover {
   font-weight: 300;
   max-width: 90%;
   line-height: 1.6;
-  color: var(--warm-brown);
+  color: var(--secondary-color);
 }
 
 .hero-cta {
@@ -467,7 +380,7 @@ a:hover {
 
 .section-subtitle {
   font-size: 1.1rem;
-  color: var(--accent-color);
+  color: var(--secondary-color);
   margin-bottom: 1rem;
   font-family: 'Poppins', sans-serif;
   font-weight: 300;
@@ -484,7 +397,7 @@ a:hover {
 
 .section-decoration span {
   height: 1px;
-  background: linear-gradient(to var(--direction, right), transparent, var(--accent-color));
+  background: linear-gradient(to var(--direction, right), transparent, var(--secondary-color));
   flex-grow: 1;
 }
 
@@ -493,7 +406,7 @@ a:hover {
 }
 
 .section-decoration i {
-  color: var(--accent-color);
+  color: var(--secondary-color);
   font-size: 1rem;
   margin: 0 1rem;
 }
@@ -609,7 +522,7 @@ a:hover {
 
 .product-artist {
   font-size: 0.8rem;
-  color: var(--accent-color);
+  color: var(--secondary-color);
   margin-bottom: 0.5rem;
 }
 
@@ -653,7 +566,7 @@ a:hover {
 
 .empty-products-icon {
   font-size: 3rem;
-  color: var(--accent-color);
+  color: var(--secondary-color);
   margin-bottom: 1.5rem;
   opacity: 0.7;
 }
@@ -665,8 +578,138 @@ a:hover {
 }
 
 .empty-products p {
-  color: var(--accent-color);
+  color: var(--secondary-color);
   font-size: 1.1rem;
+}
+
+/* Craft Categories Section */
+.craft-categories-section {
+  background-color: var(--light-bg);
+  position: relative;
+  padding: 5rem 0;
+}
+
+.craft-category-card, .category-card {
+  transition: all 0.3s ease;
+  border: none;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background-color: #fff;
+}
+
+.craft-category-card:hover, .category-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.craft-category-img-wrapper, .category-card img.card-img-top {
+  position: relative;
+  overflow: hidden;
+  height: 220px;
+}
+
+.craft-category-img-wrapper img, .category-card img.card-img-top {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.craft-category-card:hover .craft-category-img-wrapper img, .category-card:hover img.card-img-top {
+  transform: scale(1.05);
+}
+
+.craft-category-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(61, 39, 26, 0.8), rgba(61, 39, 26, 0.4), transparent);
+  color: white;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.craft-category-card:hover .craft-category-overlay {
+  opacity: 1;
+}
+
+.craft-category-card .card-body, .category-card .card-body {
+  padding: 1.5rem;
+  background-color: #fff;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.craft-category-card .card-title, .category-card .card-title {
+  font-weight: 600;
+  color: #3D271A;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.craft-category-card .card-text, .category-card .card-text {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.category-card .badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background-color: rgba(61, 39, 26, 0.8);
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.craft-category-card .btn-explore, .category-card .btn-view {
+  background-color: #3D271A;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.craft-category-card .btn-explore:hover, .category-card .btn-view:hover {
+  background-color: #5A9E94;
+  transform: translateX(5px);
+}
+
+.craft-category-card .btn-explore i, .category-card .btn-view i {
+  transition: transform 0.3s ease;
+}
+
+.craft-category-card:hover .btn-explore i, .category-card:hover .btn-view i {
+  transform: translateX(3px);
+}
+
+.craft-category-overlay span {
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.craft-category-card .card-title {
+  color: var(--primary-color);
+  font-family: 'Playfair Display', serif;
+  margin-top: 0.5rem;
+  font-weight: 600;
 }
 
 /* Quote Section */
@@ -784,44 +827,17 @@ a:hover {
 
 /* Cards */
 .card {
-  border-radius: var(--border-radius);
-  border: 1px solid rgba(139, 93, 46, 0.1);
+  border: none;
+  border-radius: 0.75rem;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.4s ease;
   overflow: hidden;
-  height: 100%;
   background-color: #fff;
 }
 
 .card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-8px);
   box-shadow: var(--shadow-md);
-  border-color: rgba(61, 122, 117, 0.2); /* Teal color with opacity */
-}
-
-.card-header {
-  background-color: rgba(139, 93, 46, 0.05);
-  border-bottom: 1px solid rgba(139, 93, 46, 0.1);
-  font-weight: 600;
-  color: var(--primary-brown);
-}
-
-.card-title {
-  color: var(--primary-brown);
-  font-family: 'Playfair Display', serif;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-
-.card-text {
-  color: var(--dark-text);
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.card-footer {
-  background-color: rgba(139, 93, 46, 0.05);
-  border-top: 1px solid rgba(139, 93, 46, 0.1);
 }
 
 .card::before {
@@ -894,13 +910,6 @@ a:hover {
 .product-card {
   margin-bottom: 2rem;
   position: relative;
-  border: none;
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.4s ease;
-  overflow: hidden;
-  background-color: #fff;
-  border-bottom: 3px solid var(--primary-brown);
 }
 
 .product-card .card-img-top {
@@ -914,7 +923,7 @@ a:hover {
 .product-card .price {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--primary-brown);
+  color: var(--primary-color);
   transition: all 0.3s ease;
 }
 
@@ -951,7 +960,7 @@ a:hover {
 }
 
 .product-card:hover .add-to-cart-form button {
-  background-color: var(--secondary-teal);
+  background-color: var(--primary-color);
   color: white;
   transform: rotate(360deg);
 }
@@ -1486,6 +1495,206 @@ footer .mb-3 {
   width: 80px;
   height: 80px;
   object-fit: cover;
+  border-radius: var(--border-radius);
+}
+
+.cart-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.cart-card .card-header {
+  background-color: #3D271A;
+  color: white;
+  padding: 15px 20px;
+  border: none;
+}
+
+.cart-card .card-body {
+  padding: 20px;
+}
+
+.cart-table {
+  margin-bottom: 0;
+}
+
+.cart-table th {
+  border-top: none;
+  border-bottom: 2px solid #f0f0f0;
+  padding: 15px 10px;
+  font-weight: 600;
+  color: #3D271A;
+}
+
+.cart-table td {
+  padding: 15px 10px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cart-product-img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.cart-product-title {
+  font-weight: 600;
+  color: #3D271A;
+  margin-bottom: 4px;
+  transition: color 0.3s ease;
+}
+
+.cart-product-title:hover {
+  color: #5A9E94;
+}
+
+.cart-quantity-input {
+  width: 50px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.cart-quantity-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #3D271A;
+  transition: all 0.2s ease;
+}
+
+.cart-quantity-btn:hover {
+  background-color: #3D271A;
+  color: white;
+  border-color: #3D271A;
+}
+
+.cart-remove-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  background-color: #fff0f0;
+  border: 1px solid #ffdddd;
+  color: #dc3545;
+  transition: all 0.2s ease;
+}
+
+.cart-remove-btn:hover {
+  background-color: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.cart-summary-card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.cart-summary-card .card-header {
+  background-color: #3D271A;
+  color: white;
+  padding: 15px 20px;
+  border: none;
+}
+
+.cart-summary-card .card-body {
+  padding: 20px;
+}
+
+.cart-summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cart-summary-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.cart-summary-total {
+  font-weight: 700;
+  color: #3D271A;
+  font-size: 1.1rem;
+}
+
+.cart-checkout-btn {
+  background-color: #5A9E94;
+  border: none;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 15px;
+}
+
+.cart-checkout-btn:hover {
+  background-color: #3D271A;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.empty-cart-container {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+}
+
+.empty-cart-icon {
+  font-size: 4rem;
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.empty-cart-title {
+  font-size: 1.5rem;
+  color: #3D271A;
+  margin-bottom: 10px;
+}
+
+.empty-cart-text {
+  color: #777;
+  margin-bottom: 25px;
+}
+
+.continue-shopping-btn {
+  background-color: #3D271A;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.continue-shopping-btn:hover {
+  background-color: #5A9E94;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .quantity-control {

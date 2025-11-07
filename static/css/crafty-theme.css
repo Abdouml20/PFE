@@ -1783,3 +1783,589 @@ input[type="number"] {
   padding-top: 1rem;
   margin-top: 1rem;
 }
+
+/* ============================================
+   DARK MODE STYLES
+   ============================================ */
+
+html[data-theme="dark"],
+:root[data-theme="dark"],
+[data-theme="dark"] {
+  /* Dark mode color palette */
+  --primary-color: #c89b67;           /* Lighter brown for visibility */
+  --secondary-color: #5aa5a0;        /* Lighter teal */
+  --accent-color: #a8c4a7;           /* Lighter green */
+  --light-bg: #1a1a1a;               /* Dark background */
+  --dark-text: #e8e8e8;              /* Light text */
+  --light-text: #e8e8e8;             /* Light text */
+  --border-color: #3d3d3d;           /* Dark border */
+  --success-color: #5aa5a0;          /* Lighter teal */
+  --warning-color: #d4a574;          /* Lighter warning */
+  --danger-color: #d16b52;           /* Lighter danger */
+  --info-color: #5aa5a0;             /* Lighter info */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --cream-color: #2d2d2d;            /* Dark cream */
+  --terracotta: #d16b52;             /* Lighter terracotta */
+  --muted-gold: #d4a574;             /* Lighter gold */
+  --soft-beige: #333333;             /* Dark beige */
+  --warm-brown: #c89b67;             /* Lighter brown */
+}
+
+/* Dark mode body - More specific selectors */
+html[data-theme="dark"] body,
+html[data-theme="dark"] body *,
+[data-theme="dark"] body,
+body[data-theme="dark"] {
+  background-color: var(--light-bg) !important;
+  color: var(--dark-text) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Override body background specifically */
+html[data-theme="dark"] body {
+  background-color: #1a1a1a !important;
+  color: #e8e8e8 !important;
+}
+
+/* Dark mode headings */
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4,
+html[data-theme="dark"] h5,
+html[data-theme="dark"] h6,
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+  color: var(--primary-color);
+}
+
+/* Dark mode links */
+[data-theme="dark"] a {
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] a:hover {
+  color: var(--accent-color);
+}
+
+/* Dark mode navbar */
+html[data-theme="dark"] .navbar,
+[data-theme="dark"] .navbar {
+  background-color: #222222 !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+html[data-theme="dark"] .navbar-brand,
+html[data-theme="dark"] .nav-link,
+[data-theme="dark"] .navbar-brand,
+[data-theme="dark"] .nav-link {
+  color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .nav-link:hover,
+html[data-theme="dark"] .nav-link.active,
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .nav-link.active {
+  color: var(--primary-color) !important;
+}
+
+/* Dark mode cards */
+html[data-theme="dark"] .card,
+[data-theme="dark"] .card {
+  background-color: #2d2d2d !important;
+  border-color: var(--border-color) !important;
+  color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .card-header,
+[data-theme="dark"] .card-header {
+  background-color: #333333 !important;
+  border-bottom-color: var(--border-color) !important;
+  color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .card-footer,
+[data-theme="dark"] .card-footer {
+  background-color: #333333 !important;
+  border-top-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] .card-body,
+[data-theme="dark"] .card-body {
+  color: var(--dark-text) !important;
+}
+
+/* Dark mode buttons */
+[data-theme="dark"] .btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #1a1a1a;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #1a1a1a;
+}
+
+[data-theme="dark"] .btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  color: #1a1a1a;
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+  color: var(--dark-text);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background-color: var(--border-color);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .btn-outline-danger {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+[data-theme="dark"] .btn-outline-success {
+  color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+/* Dark mode forms */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: #2d2d2d;
+  border-color: var(--border-color);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: #2d2d2d;
+  border-color: var(--primary-color);
+  color: var(--dark-text);
+  box-shadow: 0 0 0 0.2rem rgba(200, 155, 103, 0.25);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: #888888;
+}
+
+/* Dark mode inputs */
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="email"],
+[data-theme="dark"] input[type="password"],
+[data-theme="dark"] input[type="search"],
+[data-theme="dark"] textarea {
+  background-color: #2d2d2d;
+  border-color: var(--border-color);
+  color: var(--dark-text);
+}
+
+/* Dark mode tables */
+[data-theme="dark"] .table {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .table thead th {
+  border-bottom-color: var(--border-color);
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .table tbody tr {
+  border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover {
+  background-color: #333333;
+  color: var(--dark-text);
+}
+
+/* Dark mode dropdowns */
+html[data-theme="dark"] .dropdown-menu,
+[data-theme="dark"] .dropdown-menu {
+  background-color: #2d2d2d !important;
+  border-color: var(--border-color) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+html[data-theme="dark"] .dropdown-item,
+[data-theme="dark"] .dropdown-item {
+  color: var(--dark-text) !important;
+  background-color: transparent !important;
+}
+
+html[data-theme="dark"] .dropdown-item:hover,
+html[data-theme="dark"] .dropdown-item:focus,
+html[data-theme="dark"] .dropdown-item.active,
+[data-theme="dark"] .dropdown-item:hover,
+[data-theme="dark"] .dropdown-item:focus,
+[data-theme="dark"] .dropdown-item.active {
+  background-color: #333333 !important;
+  color: var(--primary-color) !important;
+}
+
+html[data-theme="dark"] .dropdown-divider,
+[data-theme="dark"] .dropdown-divider {
+  border-top-color: var(--border-color) !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="dark"] .dropdown-toggle,
+[data-theme="dark"] .dropdown-toggle {
+  color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .dropdown-toggle:hover,
+html[data-theme="dark"] .dropdown-toggle:focus,
+html[data-theme="dark"] .dropdown-toggle.show,
+[data-theme="dark"] .dropdown-toggle:hover,
+[data-theme="dark"] .dropdown-toggle:focus,
+[data-theme="dark"] .dropdown-toggle.show {
+  color: var(--primary-color) !important;
+}
+
+/* Ensure dropdown menu button text is visible */
+html[data-theme="dark"] .nav-link.dropdown-toggle {
+  color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .nav-link.dropdown-toggle:hover,
+html[data-theme="dark"] .nav-link.dropdown-toggle:focus,
+html[data-theme="dark"] .nav-link.dropdown-toggle.show {
+  color: var(--primary-color) !important;
+}
+
+/* Dark mode badges */
+[data-theme="dark"] .badge {
+  color: #1a1a1a;
+}
+
+[data-theme="dark"] .badge.bg-secondary {
+  background-color: #555555 !important;
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .badge.bg-primary {
+  background-color: var(--primary-color) !important;
+  color: #1a1a1a;
+}
+
+/* Dark mode alerts */
+[data-theme="dark"] .alert {
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .alert-success {
+  background-color: rgba(90, 165, 160, 0.2);
+  border-color: var(--success-color);
+  color: var(--success-color);
+}
+
+[data-theme="dark"] .alert-danger {
+  background-color: rgba(209, 107, 82, 0.2);
+  border-color: var(--danger-color);
+  color: var(--danger-color);
+}
+
+[data-theme="dark"] .alert-warning {
+  background-color: rgba(212, 165, 116, 0.2);
+  border-color: var(--warning-color);
+  color: var(--warning-color);
+}
+
+[data-theme="dark"] .alert-info {
+  background-color: rgba(90, 165, 160, 0.2);
+  border-color: var(--info-color);
+  color: var(--info-color);
+}
+
+/* Dark mode pagination */
+[data-theme="dark"] .pagination .page-link {
+  background-color: #2d2d2d;
+  border-color: var(--border-color);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .pagination .page-link:hover {
+  background-color: #333333;
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #1a1a1a;
+}
+
+/* Dark mode list groups */
+[data-theme="dark"] .list-group-item {
+  background-color: #2d2d2d;
+  border-color: var(--border-color);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .list-group-item:hover {
+  background-color: #333333;
+}
+
+/* Dark mode hero section */
+[data-theme="dark"] .hero-section {
+  background: linear-gradient(135deg, #2d2d2d 0%, #333333 100%);
+}
+
+[data-theme="dark"] .hero-content {
+  color: var(--dark-text);
+}
+
+/* Dark mode footer */
+[data-theme="dark"] footer {
+  background-color: #222222;
+  border-top-color: var(--border-color);
+  color: var(--dark-text);
+}
+
+/* Dark mode product cards */
+[data-theme="dark"] .product-card {
+  background-color: #2d2d2d;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .product-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Dark mode post cards */
+[data-theme="dark"] .post-card {
+  background-color: #2d2d2d;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .post-card .card-body {
+  color: var(--dark-text);
+}
+
+/* Dark mode text colors */
+[data-theme="dark"] .text-muted {
+  color: #aaaaaa !important;
+}
+
+[data-theme="dark"] .text-primary {
+  color: var(--primary-color) !important;
+}
+
+[data-theme="dark"] .text-success {
+  color: var(--success-color) !important;
+}
+
+[data-theme="dark"] .text-danger {
+  color: var(--danger-color) !important;
+}
+
+[data-theme="dark"] .text-warning {
+  color: var(--warning-color) !important;
+}
+
+/* Dark mode modal */
+[data-theme="dark"] .modal-content {
+  background-color: #2d2d2d;
+  border-color: var(--border-color);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .modal-header {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-footer {
+  border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-close {
+  filter: invert(1);
+}
+
+/* Dark mode search */
+[data-theme="dark"] .search-wrapper {
+  background-color: #2d2d2d;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .search-icon {
+  color: var(--dark-text);
+}
+
+/* Dark mode toggle button */
+#darkModeToggle {
+  color: var(--primary-color);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+#darkModeToggle:hover {
+  color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+#darkModeToggle:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] #darkModeToggle {
+  color: var(--primary-color);
+}
+
+html[data-theme="dark"] #darkModeToggle:hover {
+  color: var(--accent-color);
+}
+
+/* Dark mode toggle dropdown item */
+#darkModeToggleDropdown {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  color: inherit;
+}
+
+#darkModeToggleDropdown:hover {
+  background-color: var(--primary-color);
+  color: var(--light-text);
+}
+
+html[data-theme="dark"] #darkModeToggleDropdown:hover {
+  background-color: var(--primary-color);
+  color: #1a1a1a;
+}
+
+#darkModeToggleDropdown:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+#darkModeToggleDropdown i {
+  margin-right: 0.5rem;
+  width: 1rem;
+  text-align: center;
+}
+
+/* Ensure all images maintain visibility */
+[data-theme="dark"] img {
+  opacity: 0.95;
+  transition: opacity 0.3s ease;
+}
+
+[data-theme="dark"] img:hover {
+  opacity: 1;
+}
+
+/* Dark mode transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Additional dark mode coverage for specific components */
+html[data-theme="dark"] .container,
+html[data-theme="dark"] .container-fluid {
+  background-color: transparent;
+}
+
+html[data-theme="dark"] main {
+  background-color: transparent;
+  color: var(--dark-text);
+}
+
+html[data-theme="dark"] header {
+  background-color: transparent;
+}
+
+html[data-theme="dark"] footer {
+  background-color: #222222 !important;
+  color: var(--dark-text) !important;
+}
+
+html[data-theme="dark"] .bg-white {
+  background-color: #2d2d2d !important;
+}
+
+html[data-theme="dark"] .bg-light {
+  background-color: #2d2d2d !important;
+}
+
+html[data-theme="dark"] .border {
+  border-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] .border-top {
+  border-top-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] .border-bottom {
+  border-bottom-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] .border-end {
+  border-right-color: var(--border-color) !important;
+}
+
+html[data-theme="dark"] .border-start {
+  border-left-color: var(--border-color) !important;
+}
+
+/* Ensure Bootstrap components work in dark mode */
+html[data-theme="dark"] .bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+html[data-theme="dark"] .bg-secondary {
+  background-color: #555555 !important;
+}
+
+html[data-theme="dark"] .bg-success {
+  background-color: var(--success-color) !important;
+}
+
+html[data-theme="dark"] .bg-danger {
+  background-color: var(--danger-color) !important;
+}
+
+html[data-theme="dark"] .bg-warning {
+  background-color: var(--warning-color) !important;
+}
+
+html[data-theme="dark"] .bg-info {
+  background-color: var(--info-color) !important;
+}
+
+/* Dark mode for specific Crafty components */
+html[data-theme="dark"] .crafty-tagline {
+  color: #aaaaaa;
+}
+
+html[data-theme="dark"] .section-title {
+  color: var(--primary-color);
+}
+
+html[data-theme="dark"] .section-subtitle {
+  color: #aaaaaa;
+}
